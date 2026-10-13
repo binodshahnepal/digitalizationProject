@@ -76,4 +76,27 @@ public class FileSystemObjectStorageService : IObjectStorageService
 
         return Task.FromResult(File.Exists(fullPath));
     }
+
+    public Task<bool> DeleteAsync(string storageKey, CancellationToken cancellationToken = default)
+    {
+        var normalizedKey = storageKey.Replace('/', Path.DirectorySeparatorChar).TrimStart(Path.DirectorySeparatorChar);
+        var fullPath = Path.Combine(_baseStoragePath, normalizedKey);
+
+        if (File.Exists(fullPath))
+        {
+            try
+            {
+                File.Delete(fullPath);
+                _logger.LogInformation("Deleted document physical file: {StorageKey}", storageKey);
+                return Task.FromResult(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete physical file {StorageKey}", storageKey);
+                return Task.FromResult(false);
+            }
+        }
+
+        return Task.FromResult(true);
+    }
 }

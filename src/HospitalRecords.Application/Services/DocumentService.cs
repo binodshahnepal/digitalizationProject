@@ -14,6 +14,7 @@ public interface IDocumentService
     Task<List<DocumentDto>> GetDocumentsByPatientAsync(Guid patientId, CancellationToken cancellationToken = default);
     Task<DocumentDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<(Stream? Stream, string ContentType, string FileName)?> DownloadFileAsync(Guid documentId, int? versionNumber = null, CancellationToken cancellationToken = default);
+    Task<bool> DeleteDocumentAsync(Guid documentId, string? deletionReason = null, CancellationToken cancellationToken = default);
 }
 
 public class DocumentService : IDocumentService
@@ -339,6 +340,44 @@ public class DocumentService : IDocumentService
             cancellationToken: cancellationToken);
 
         return (stream, version.ContentType, version.OriginalFileName);
+    }
+
+    public async Task<bool> DeleteDocumentAsync(Guid documentId, string? deletionReason = null, CancellationToken cancellationToken = default)
+    {
+        var document = await _context.Documents
+            .Include(d => d.Versions)
+            .Include(d => d.OcrResults)
+            .Include(d => d.ClinicalEntities)
+            .Include(d => d.Embeddings)
+            .FirstOrDefaultAsync(d => d.Id == documentId, cancellationToken);
+
+        if (document == null) return false;
+
+        var fileName = document.Versions.FirstOrDefault()?.OriginalFileName ?? "Scanned Record";
+
+        // 1. Delete physical files from encrypted storage vault
+        foreach (var version in document.Versions)
+        {
+            if (!string.IsNullOrWhiteSpace(version.StorageKey))
+            {
+                await _storageService.DeleteAsync(version.StorageKey, cancellationToken);
+            }
+        }
+
+        // 2. Remove document and dependent records from database (cascade deletes versions/ocr/entities/embeddings)
+        _context.Documents.Remove(document);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // 3. Log audit event for compliance
+        await _auditService.LogAsync(
+            action: "DOCUMENT_DELETED",
+            resource: "Document",
+            resourceId: documentId.ToString(),
+            outcome: AuditOutcome.Success,
+            details: $"Permanently deleted document '{fileName}' (Patient: {document.PatientId}, Reason: {deletionReason ?? "User initiated"})",
+            cancellationToken: cancellationToken);
+
+        return true;
     }
 
     private static DocumentDto MapToDto(Document d, DocumentVersion? currentVersion, DocumentOcrResultDto? latestOcr = null)

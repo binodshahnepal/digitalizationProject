@@ -53,4 +53,9 @@ export class DocumentService {
     const query = versionNumber ? `?versionNumber=${versionNumber}` : '';
     return this.http.post<DocumentOcrResultDto>(`${this.baseUrl}/documents/${documentId}/reprocess-ocr${query}`, {});
   }
+
+  deleteDocument(documentId: string, reason?: string): Observable<{ message: string; documentId: string }> {
+    const query = reason ? `?reason=${encodeURIComponent(reason)}` : '';
+    return this.http.delete<{ message: string; documentId: string }>(`${this.baseUrl}/documents/${documentId}${query}`);
+  }
 }

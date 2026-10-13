@@ -42,6 +42,7 @@ public interface IObjectStorageService
     Task<string> UploadAsync(Stream stream, string storageKey, string contentType, CancellationToken cancellationToken = default);
     Task<Stream?> DownloadAsync(string storageKey, CancellationToken cancellationToken = default);
     Task<bool> ExistsAsync(string storageKey, CancellationToken cancellationToken = default);
+    Task<bool> DeleteAsync(string storageKey, CancellationToken cancellationToken = default);
 }
 
 public interface ICurrentUserService

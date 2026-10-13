@@ -179,6 +179,27 @@ public class DocumentsController : ControllerBase
     }
 
     /// <summary>
+    /// Delete a medical record document and its associated versions and OCR results (FR-DOC-006, NFR-004)
+    /// </summary>
+    [HttpDelete("api/v1/documents/{id:guid}")]
+    [Authorize(Roles = "RegistrationClerk,MedicalRecordsSupervisor,HospitalAdmin,ITAdmin,TreatingClinician,Nurse")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteDocument(
+        [FromRoute] Guid id,
+        [FromQuery] string? reason,
+        CancellationToken cancellationToken)
+    {
+        var success = await _documentService.DeleteDocumentAsync(id, reason, cancellationToken);
+        if (!success)
+        {
+            return NotFound(new { message = $"Document with ID '{id}' was not found or already deleted." });
+        }
+
+        return Ok(new { message = "Document and associated versions successfully deleted.", documentId = id });
+    }
+
+    /// <summary>
     /// Retrieve list of all documents flagged for human-in-the-loop review (FR-OCR-003, FR-VIS-003)
     /// </summary>
     [HttpGet("api/v1/documents/review-queue")]

@@ -819,6 +819,9 @@ import {
                 <button (click)="openAmendModal(doc.id)" class="btn-amend" title="Create version amendment">
                   ✏️ Amend
                 </button>
+                <button type="button" (click)="openDeleteConfirmModal(doc)" class="btn-delete" title="Permanently delete document">
+                  🗑️ Delete
+                </button>
               </td>
             </tr>
           </tbody>
@@ -1217,6 +1220,9 @@ import {
             <a [href]="rawViewUrl" target="_blank" class="btn-popup-newtab" title="Open full scan in new browser tab">
               🗗 Open in New Tab
             </a>
+            <button type="button" (click)="openDeleteConfirmModal(selectedViewDoc()!)" class="btn-popup-delete" title="Permanently delete this document">
+              🗑️ Delete
+            </button>
             <button type="button" (click)="closeViewModal()" class="btn-close" title="Close preview">✕</button>
           </div>
         </div>
@@ -1345,7 +1351,72 @@ import {
         </div>
       </div>
     </div>
-  </div> <!-- Closes <div class="page-container" *ngIf="patient()"> -->
+
+    <!-- Document Deletion Confirmation Modal -->
+    <div *ngIf="deletingDoc()" class="modal-overlay" (click)="closeDeleteConfirmModal()">
+      <div class="modal-box modal-delete-card" (click)="$event.stopPropagation()">
+        <div class="delete-card-header">
+          <div class="delete-icon-orb">🗑️</div>
+          <div>
+            <h3>Delete Scanned Document</h3>
+            <p class="delete-sub">Are you sure you want to permanently delete this medical record?</p>
+          </div>
+          <button type="button" class="btn-close" (click)="closeDeleteConfirmModal()">✕</button>
+        </div>
+
+        <div class="delete-card-body">
+          <div class="delete-target-preview">
+            <div class="target-title">
+              <strong>{{ deletingDoc()?.currentVersion?.originalFileName || 'Document' }}</strong>
+              <span class="category-pill">{{ deletingDoc()?.category }}</span>
+            </div>
+            <div class="target-meta">
+              <span><strong>Version:</strong> {{ deletingDoc()?.currentVersionNumber || 1 }}</span>
+              <span><strong>Clinical Date:</strong> {{ deletingDoc()?.clinicalDate }}</span>
+              <span><strong>File Size:</strong> {{ formatBytes(deletingDoc()?.currentVersion?.fileSize) }}</span>
+            </div>
+          </div>
+
+          <div class="delete-warning-banner">
+            <span class="warn-icon">⚠️</span>
+            <div>
+              <strong>Permanent Deletion:</strong>
+              This will remove the file from storage, clear all OCR extractions and embeddings, and update this patient's clinical history.
+            </div>
+          </div>
+
+          <div *ngIf="deleteError()" class="delete-error-banner">
+            ⚠️ {{ deleteError() }}
+          </div>
+
+          <div class="form-group delete-reason-group">
+            <label class="delete-reason-label">Reason for Deletion (Optional audit note):</label>
+            <input 
+              type="text" 
+              [(ngModel)]="deleteReason" 
+              placeholder="E.g., Wrong patient chart, Duplicate file, Illegible scan"
+              class="delete-reason-input" />
+            <div class="reason-chips">
+              <button type="button" class="reason-chip" (click)="deleteReason = 'Wrong patient chart uploaded'">Wrong Patient</button>
+              <button type="button" class="reason-chip" (click)="deleteReason = 'Duplicate scan / Already exists'">Duplicate Scan</button>
+              <button type="button" class="reason-chip" (click)="deleteReason = 'Poor scan quality / Illegible'">Poor Quality</button>
+              <button type="button" class="reason-chip" (click)="deleteReason = 'Superseded by rescanned version'">Superseded</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="delete-card-footer">
+          <button type="button" class="btn-cancel" (click)="closeDeleteConfirmModal()" [disabled]="isDeleting()">
+            Cancel
+          </button>
+          <button type="button" class="btn-danger-confirm" (click)="confirmDeleteDocument()" [disabled]="isDeleting()">
+            <span *ngIf="!isDeleting()">🗑️ Confirm Permanent Delete</span>
+            <span *ngIf="isDeleting()">⏳ Deleting...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div> <!-- Closes page-container -->
 
     <div *ngIf="loading()" class="loading-state">
       Loading patient longitudinal record...
@@ -1804,6 +1875,26 @@ import {
       padding: 0.2rem 0.5rem;
       font-size: 0.75rem;
       cursor: pointer;
+      margin-right: 0.35rem;
+    }
+    .btn-delete {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      transition: all 0.15s ease;
+    }
+    .btn-delete:hover {
+      background: #fee2e2;
+      border-color: #f87171;
+      color: #b91c1c;
     }
     .doc-name-clickable {
       background: none;
@@ -1905,6 +1996,183 @@ import {
     }
     .btn-popup-newtab:hover {
       background: #f1f5f9;
+    }
+    .btn-popup-delete {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+      padding: 0.35rem 0.7rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.15s ease;
+    }
+    .btn-popup-delete:hover {
+      background: #dc2626;
+      color: #ffffff;
+      border-color: #dc2626;
+    }
+    .modal-delete-card {
+      max-width: 520px;
+      width: 90%;
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+      padding: 0 !important;
+    }
+    .delete-card-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.25rem 1.5rem;
+      background: #fff1f2;
+      border-bottom: 1px solid #ffe4e6;
+    }
+    .delete-icon-orb {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #fee2e2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .delete-card-header h3 {
+      margin: 0;
+      font-size: 1.15rem;
+      color: #9f1239;
+    }
+    .delete-sub {
+      margin: 0.2rem 0 0;
+      font-size: 0.8rem;
+      color: #be123c;
+    }
+    .delete-card-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .delete-target-preview {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+    }
+    .target-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.95rem;
+      color: #0f172a;
+      margin-bottom: 0.4rem;
+    }
+    .target-meta {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+    .delete-warning-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      font-size: 0.825rem;
+      color: #991b1b;
+      line-height: 1.45;
+    }
+    .delete-warning-banner .warn-icon {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .delete-error-banner {
+      background: #fee2e2;
+      border: 1px solid #ef4444;
+      border-radius: 6px;
+      padding: 0.65rem 0.85rem;
+      color: #b91c1c;
+      font-size: 0.825rem;
+    }
+    .delete-reason-group {
+      margin-top: 0.25rem;
+    }
+    .delete-reason-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 0.35rem;
+      display: block;
+    }
+    .delete-reason-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.6rem 0.85rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    .delete-reason-input:focus {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+    }
+    .reason-chips {
+      display: flex;
+      gap: 0.35rem;
+      margin-top: 0.45rem;
+      flex-wrap: wrap;
+    }
+    .reason-chip {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.72rem;
+      color: #475569;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .reason-chip:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+    .delete-card-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      padding: 1rem 1.5rem;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+    }
+    .btn-danger-confirm {
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.55rem 1.15rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .btn-danger-confirm:hover:not(:disabled) {
+      background: #b91c1c;
+    }
+    .btn-danger-confirm:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
     .viewer-body {
       flex: 1;
@@ -3804,6 +4072,12 @@ export class PatientDetailsComponent implements OnInit {
   imageLoading = signal<boolean>(false);
   imageError = signal<boolean>(false);
 
+  // Document Deletion modal state
+  deletingDoc = signal<DocumentDto | null>(null);
+  isDeleting = signal<boolean>(false);
+  deleteReason = '';
+  deleteError = signal<string | null>(null);
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -3897,6 +4171,46 @@ export class PatientDetailsComponent implements OnInit {
     this.imageError.set(false);
     this.zoomLevel.set(1);
     this.rotationDegrees.set(0);
+  }
+
+  openDeleteConfirmModal(doc: DocumentDto): void {
+    this.deletingDoc.set(doc);
+    this.deleteReason = '';
+    this.deleteError.set(null);
+  }
+
+  closeDeleteConfirmModal(): void {
+    if (this.isDeleting()) return;
+    this.deletingDoc.set(null);
+    this.deleteReason = '';
+    this.deleteError.set(null);
+  }
+
+  confirmDeleteDocument(): void {
+    const doc = this.deletingDoc();
+    if (!doc) return;
+
+    this.isDeleting.set(true);
+    this.deleteError.set(null);
+
+    this.documentService.deleteDocument(doc.id, this.deleteReason).subscribe({
+      next: () => {
+        this.isDeleting.set(false);
+        this.documents.update(docs => docs.filter(d => d.id !== doc.id));
+
+        if (this.selectedViewDoc()?.id === doc.id) {
+          this.closeViewModal();
+        }
+
+        this.closeDeleteConfirmModal();
+        this.loadTimeline();
+        this.showToast(`🗑️ Document "${doc.currentVersion?.originalFileName || 'Scan'}" permanently deleted.`);
+      },
+      error: err => {
+        this.isDeleting.set(false);
+        this.deleteError.set(err?.error?.message || 'Failed to delete document. Please try again.');
+      }
+    });
   }
 
   formatBytes(bytes?: number): string {
