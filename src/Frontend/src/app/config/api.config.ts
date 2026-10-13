@@ -8,7 +8,7 @@ export function getApiBaseUrl(): string {
     const host = window.location.hostname;
     const port = window.location.port;
     if (host === 'www.digital.com' || host === 'digital.com' || port === '' || port === '80' || port === '443') {
-      return `${window.location.origin}/api/v1`;
+      return `${window.location.origin}/api/api/v1`;
     }
   }
   return 'http://localhost:5000/api/v1';
