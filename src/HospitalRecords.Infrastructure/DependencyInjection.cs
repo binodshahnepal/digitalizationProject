@@ -36,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<IClinicalEntityExtractionService, ClinicalEntityExtractionService>();
         services.AddScoped<ITimelineService, TimelineService>();
         services.AddScoped<ISearchService, SearchService>();
+        services.AddScoped<IRagChatService, RagChatService>();
 
         return services;
     }

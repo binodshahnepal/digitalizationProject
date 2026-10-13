@@ -13,12 +13,20 @@ import { EncounterDto, CreateEncounterRequest, EncounterType } from '../../model
 import { DocumentDto, DocumentCategory, ConfidentialityLevel } from '../../models/document.models';
 import { ScannerDeviceDto } from '../../models/scanner.models';
 import { ClinicalEntityService } from '../../services/clinical-entity.service';
+import { RagService } from '../../services/rag.service';
 import { 
   ClinicalEntityDto, 
   PatientTimelineDto, 
   TimelineEventDto, 
   VerifyClinicalEntityRequest 
 } from '../../models/clinical-entity.models';
+import { 
+  ClinicalRagResponseDto, 
+  SuggestedQuestionDto, 
+  AskAssistantRequest, 
+  ChatMessage, 
+  ClinicalCitationDto 
+} from '../../models/rag.models';
 
 @Component({
   selector: 'app-patient-details',
@@ -67,6 +75,12 @@ import {
 
       <!-- Navigation Tabs -->
       <div class="workspace-tabs">
+        <button 
+          (click)="activeTab.set('ai-copilot')" 
+          [class.active]="activeTab() === 'ai-copilot'" 
+          class="tab-button tab-ai-copilot">
+          ✨ Clinical AI Copilot (Cited RAG)
+        </button>
         <button 
           (click)="activeTab.set('timeline')" 
           [class.active]="activeTab() === 'timeline'" 
@@ -784,8 +798,247 @@ import {
             </tr>
           </tbody>
         </table>
+      </div>
 
-        <!-- In-Browser Document Viewer Pop-up Modal -->
+      <!-- TAB: Clinical AI Copilot & Cited RAG Chatbot (FR-AI-001 - FR-AI-004) -->
+      <div *ngIf="activeTab() === 'ai-copilot'" class="tab-content">
+        <!-- Toast Notification -->
+        <div *ngIf="ragCopiedToast()" class="floating-toast">
+          {{ ragCopiedToast() }}
+        </div>
+
+        <!-- AI Copilot Master Header Banner -->
+        <div class="ai-copilot-banner">
+          <div class="ai-banner-left">
+            <div class="ai-badge-row">
+              <span class="ai-pill-active">
+                <span class="pulse-dot"></span> BPKMCH Clinical AI Copilot · On-Premise RAG
+              </span>
+              <span class="privacy-pill">
+                🔒 100% Local Inference · Zero Cloud Leakage · Strict Grounding Protocol
+              </span>
+            </div>
+            <h3>Oncology Clinical Intelligence &amp; Verified Evidence Synthesis</h3>
+            <p class="ai-banner-sub">
+              Query this patient's digitized medical record in natural language. Every clinical assertion is strictly cited to original scanned documents.
+            </p>
+          </div>
+
+          <div class="ai-banner-right">
+            <!-- Language Selector -->
+            <div class="language-switch-group">
+              <span class="control-label">Synthesis Language:</span>
+              <div class="lang-pills">
+                <button 
+                  type="button"
+                  [class.active]="ragLanguage() === 'en'" 
+                  (click)="ragLanguage.set('en')" 
+                  class="btn-lang-pill">
+                  🇬🇧 English
+                </button>
+                <button 
+                  type="button"
+                  [class.active]="ragLanguage() === 'ne'" 
+                  (click)="ragLanguage.set('ne')" 
+                  class="btn-lang-pill">
+                  🇳🇵 नेपाली
+                </button>
+              </div>
+            </div>
+
+            <!-- Controls & Actions -->
+            <div class="banner-actions-row">
+              <button 
+                type="button" 
+                (click)="clearRagChat()" 
+                class="btn-reset-chat" 
+                title="Clear current dialogue history">
+                🔄 Clear Dialogue
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Smart Clinical Prompt Chips Bar -->
+        <div class="prompt-chips-shelf">
+          <div class="chips-title">
+            <span>⚡ Recommended Clinical Inquiries:</span>
+            <span class="chips-tip">Click any prompt to synthesize grounded oncology answers</span>
+          </div>
+          <div class="chips-list">
+            <button 
+              *ngFor="let s of suggestedQuestions()" 
+              type="button" 
+              class="prompt-chip" 
+              (click)="askRagQuestion(s.questionText)"
+              [disabled]="ragLoading()">
+              <span class="chip-icon">{{ s.icon }}</span>
+              <span class="chip-cat">{{ s.category }}:</span>
+              <span class="chip-text">{{ s.questionText }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Chat Dialogue Container -->
+        <div class="chat-dialogue-card">
+          <!-- Chat Messages Scroll Area -->
+          <div class="chat-messages-container">
+            <!-- Welcome Hero if Empty -->
+            <div *ngIf="ragChatMessages().length === 0" class="chat-welcome-hero">
+              <div class="hero-icon-circle">🏥</div>
+              <h4>Welcome to BPKMCH Clinical AI Assistant</h4>
+              <p>
+                Ready to review <strong>{{ patient()?.fullName }}</strong> (MRN: <code>{{ patient()?.mrn }}</code>).
+                Select one of the tailored oncology prompt chips above, or ask any clinical question below.
+              </p>
+              <div class="welcome-features-grid">
+                <div class="feature-item">
+                  <span class="feat-icon">📑</span>
+                  <strong>Mandatory Citations</strong>
+                  <span>Every claim links to original scan pages with document names and sections.</span>
+                </div>
+                <div class="feature-item">
+                  <span class="feat-icon">🛡️</span>
+                  <strong>Zero Hallucination</strong>
+                  <span>Strictly refuses to invent data when not documented in patient scans.</span>
+                </div>
+                <div class="feature-item">
+                  <span class="feat-icon">🔒</span>
+                  <strong>Prompt Injection Defense</strong>
+                  <span>Shields clinical records from malicious prompt hijacking and system overrides.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Message Bubbles -->
+            <div *ngFor="let msg of ragChatMessages()" class="message-row" [class.user-row]="msg.sender === 'user'" [class.assistant-row]="msg.sender === 'assistant'">
+              <!-- Clinician Message -->
+              <div *ngIf="msg.sender === 'user'" class="bubble user-bubble">
+                <div class="bubble-header">
+                  <span class="avatar-icon">👨‍⚕️</span>
+                  <span class="sender-name">Attending Clinician / Oncologist</span>
+                  <span class="msg-time">{{ msg.timestamp | date:'shortTime' }}</span>
+                </div>
+                <div class="bubble-text">{{ msg.text }}</div>
+              </div>
+
+              <!-- Assistant Message -->
+              <div *ngIf="msg.sender === 'assistant'" class="bubble assistant-bubble">
+                <!-- Message Top Bar -->
+                <div class="assistant-meta-bar">
+                  <div class="assistant-title-group">
+                    <span class="avatar-icon-ai">🏥</span>
+                    <span class="sender-name-ai">BPKMCH Clinical AI Copilot</span>
+                    <span *ngIf="msg.response?.modelName" class="badge-model">{{ msg.response?.modelName }}</span>
+                    <span *ngIf="msg.response?.durationMs" class="badge-latency">⚡ {{ msg.response?.durationMs }}ms</span>
+                  </div>
+
+                  <!-- Confidence / Refusal Badge -->
+                  <div class="assistant-badges-group" *ngIf="!msg.isLoading">
+                    <span *ngIf="msg.response?.refusalTriggered" class="badge-refusal">
+                      ⚠️ Out-of-Record Refusal
+                    </span>
+                    <span *ngIf="!msg.response?.refusalTriggered && msg.response?.groundedConfidence" class="badge-confidence">
+                      🛡️ {{ (msg.response!.groundedConfidence * 100).toFixed(0) }}% Grounded Factuality
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Loading State -->
+                <div *ngIf="msg.isLoading" class="loading-typing-state">
+                  <div class="typing-indicator">
+                    <span></span><span></span><span></span>
+                  </div>
+                  <span class="typing-text">Retrieving semantic vector embeddings &amp; synthesizing grounded clinical response...</span>
+                </div>
+
+                <!-- Answer Content -->
+                <div *ngIf="!msg.isLoading" class="assistant-content">
+                  <div class="formatted-answer" [innerHTML]="formatMarkdown(msg.text)"></div>
+
+                  <!-- Interactive Citation Shelf -->
+                  <div *ngIf="msg.response?.citations?.length" class="citations-shelf">
+                    <div class="shelf-header">
+                      <span class="shelf-label">📌 Grounding Citations (Click to preview original scan):</span>
+                    </div>
+                    <div class="shelf-pills">
+                      <button 
+                        *ngFor="let cite of msg.response!.citations" 
+                        type="button" 
+                        (click)="openCitationDocument(cite)" 
+                        class="citation-pill"
+                        title="Click to preview scan in popup">
+                        <span class="cite-pill-icon">📄</span>
+                        <span class="cite-pill-label">{{ cite.citationLabel || cite.documentTitle }}</span>
+                        <span class="cite-pill-score">{{ (cite.relevanceScore * 100).toFixed(0) }}% match</span>
+                        <span class="cite-pill-action">👁️ View Scan</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Evidence Inspector Accordion -->
+                  <details *ngIf="msg.response?.citations?.length" class="evidence-accordion">
+                    <summary class="accordion-trigger">
+                      🔍 Inspect Raw Evidence Chunks &amp; Document Snippets ({{ msg.response!.citations.length }} references)
+                    </summary>
+                    <div class="evidence-list">
+                      <div *ngFor="let cite of msg.response!.citations; let i = index" class="evidence-card">
+                        <div class="evidence-card-header">
+                          <span class="ev-index">Chunk #{{ i + 1 }}</span>
+                          <span class="ev-title">📄 {{ cite.documentTitle }}</span>
+                          <span class="ev-sec">§ {{ cite.sectionHeader || 'Clinical Section' }}</span>
+                          <button type="button" (click)="openCitationDocument(cite)" class="btn-ev-preview">
+                            👁️ Open Scanned Document
+                          </button>
+                        </div>
+                        <div class="evidence-snippet">
+                          "{{ cite.snippet }}"
+                        </div>
+                      </div>
+                    </div>
+                  </details>
+
+                  <!-- Bottom Action Bar -->
+                  <div class="assistant-actions-bar">
+                    <button type="button" (click)="copyClinicalNote(msg.text)" class="btn-action-tool" title="Copy response to clipboard">
+                      📋 Copy Clinical Note
+                    </button>
+                    <button type="button" (click)="printClinicalSummary(msg.text)" class="btn-action-tool" title="Print this synthesized response">
+                      🖨️ Print Clinical Summary
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Input Bar -->
+          <div class="chat-input-bar">
+            <div class="input-wrapper">
+              <input 
+                type="text" 
+                [(ngModel)]="ragInputQuery" 
+                (keydown.enter)="askRagQuestion()" 
+                placeholder="Ask clinical questions grounded strictly on this patient's scanned records..." 
+                [disabled]="ragLoading()" 
+                class="chat-text-input" />
+              <button 
+                type="button" 
+                (click)="askRagQuestion()" 
+                [disabled]="ragLoading() || !ragInputQuery.trim()" 
+                class="btn-send-query">
+                <span *ngIf="!ragLoading()">➤ Ask Copilot</span>
+                <span *ngIf="ragLoading()">⏳ Synthesizing...</span>
+              </button>
+            </div>
+            <div class="input-safety-disclaimer">
+              🔒 <strong>BPKMCH Clinical AI Safety Protocol:</strong> All responses are computed 100% on-premise from verified scans. Questions outside this patient's documented records trigger automatic safety refusals.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- In-Browser Document Viewer Pop-up Modal -->
         <div *ngIf="selectedViewDoc()" class="modal-overlay" (click)="closeViewModal()">
           <div class="modal-box modal-viewer" (click)="$event.stopPropagation()">
             <div class="modal-header viewer-header">
@@ -910,7 +1163,6 @@ import {
           </div>
         </div>
       </div>
-    </div>
 
     <div *ngIf="loading()" class="loading-state">
       Loading patient longitudinal record...
@@ -2264,6 +2516,647 @@ import {
       color: #334155;
       font-size: 0.82rem;
     }
+
+    /* ========================================================
+       SPRINT 6: Sleek Clinical AI Copilot & Cited RAG Styles
+       ======================================================== */
+    .tab-ai-copilot {
+      background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%) !important;
+      color: #0369a1 !important;
+      border-color: #38bdf8 !important;
+      font-weight: 700 !important;
+      box-shadow: 0 1px 3px rgba(2, 132, 199, 0.15);
+    }
+    .tab-ai-copilot.active {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+      color: white !important;
+      border-color: #0284c7 !important;
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3) !important;
+    }
+    .floating-toast {
+      position: fixed;
+      top: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #065f46;
+      color: white;
+      padding: 0.65rem 1.4rem;
+      border-radius: 9999px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+      font-weight: 600;
+      font-size: 0.88rem;
+      z-index: 99999;
+      animation: fadeInSlide 0.25s ease-out;
+    }
+    @keyframes fadeInSlide {
+      from { opacity: 0; transform: translate(-50%, -15px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    .ai-copilot-banner {
+      background: linear-gradient(135deg, #091e42 0%, #0f2b5c 50%, #1e3a8a 100%);
+      color: white;
+      border-radius: 14px;
+      padding: 1.5rem 1.75rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1.5rem;
+      box-shadow: 0 6px 18px rgba(9, 30, 66, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+    .ai-banner-left h3 {
+      margin: 0.5rem 0 0.25rem 0;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #f8fafc;
+      letter-spacing: -0.01em;
+    }
+    .ai-banner-sub {
+      margin: 0;
+      color: #93c5fd;
+      font-size: 0.88rem;
+      line-height: 1.45;
+      max-width: 650px;
+    }
+    .ai-badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .ai-pill-active {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      color: #34d399;
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 0.25rem 0.7rem;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      letter-spacing: 0.02em;
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulseGreen 2s infinite ease-in-out;
+    }
+    @keyframes pulseGreen {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    .privacy-pill {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #cbd5e1;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+    }
+    .ai-banner-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.85rem;
+    }
+    .language-switch-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .control-label {
+      font-size: 0.78rem;
+      color: #cbd5e1;
+    }
+    .lang-pills {
+      display: flex;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      gap: 3px;
+    }
+    .btn-lang-pill {
+      background: transparent;
+      color: #94a3b8;
+      border: none;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-lang-pill.active {
+      background: #0284c7;
+      color: white;
+      font-weight: 700;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+    .banner-actions-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .btn-reset-chat {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-reset-chat:hover {
+      background: rgba(239, 68, 68, 0.3);
+      color: white;
+    }
+    .prompt-chips-shelf {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .chips-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .chips-tip {
+      font-size: 0.75rem;
+      color: #64748b;
+      font-weight: normal;
+    }
+    .chips-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .prompt-chip {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 9999px;
+      padding: 0.45rem 0.95rem;
+      font-size: 0.82rem;
+      color: #1e293b;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .prompt-chip:hover:not(:disabled) {
+      border-color: #0284c7;
+      background: #f0f9ff;
+      color: #0369a1;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(2, 132, 199, 0.15);
+    }
+    .chip-icon {
+      font-size: 0.95rem;
+    }
+    .chip-cat {
+      font-weight: 700;
+      color: #0284c7;
+    }
+    .chip-text {
+      color: #334155;
+    }
+    .chat-dialogue-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 580px;
+    }
+    .chat-messages-container {
+      padding: 1.5rem;
+      flex: 1;
+      overflow-y: auto;
+      max-height: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      background: #f8fafc;
+    }
+    .chat-welcome-hero {
+      text-align: center;
+      max-width: 680px;
+      margin: 1.5rem auto;
+      padding: 2rem 2.5rem;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .hero-icon-circle {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #eff6ff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.85rem;
+      margin-bottom: 0.75rem;
+      border: 1px solid #bfdbfe;
+    }
+    .chat-welcome-hero h4 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .chat-welcome-hero p {
+      color: #64748b;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin: 0 0 1.25rem 0;
+    }
+    .welcome-features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      text-align: left;
+    }
+    .feature-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 0.85rem;
+      font-size: 0.78rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .feature-item strong {
+      color: #0f172a;
+    }
+    .feature-item span {
+      color: #64748b;
+      line-height: 1.35;
+    }
+    .feat-icon {
+      font-size: 1.15rem;
+      margin-bottom: 0.15rem;
+    }
+    .message-row {
+      display: flex;
+      width: 100%;
+    }
+    .user-row {
+      justify-content: flex-end;
+    }
+    .assistant-row {
+      justify-content: flex-start;
+    }
+    .user-bubble {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+      color: white;
+      padding: 0.9rem 1.25rem;
+      border-radius: 16px 16px 2px 16px;
+      max-width: 75%;
+      box-shadow: 0 3px 8px rgba(30, 58, 138, 0.2);
+    }
+    .user-bubble .bubble-header {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.75rem;
+      color: #93c5fd;
+      margin-bottom: 0.35rem;
+    }
+    .user-bubble .bubble-text {
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    .assistant-bubble {
+      background: white;
+      border: 1px solid #e2e8f0;
+      padding: 1.25rem 1.5rem;
+      border-radius: 16px 16px 16px 2px;
+      width: 100%;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.04);
+    }
+    .assistant-meta-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 0.65rem;
+      margin-bottom: 0.95rem;
+    }
+    .assistant-title-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .sender-name-ai {
+      font-weight: 700;
+      color: #0f172a;
+      font-size: 0.88rem;
+    }
+    .badge-model {
+      background: #f1f5f9;
+      color: #475569;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-family: monospace;
+      border: 1px solid #e2e8f0;
+    }
+    .badge-latency {
+      color: #64748b;
+      font-size: 0.75rem;
+    }
+    .badge-confidence {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #047857;
+      font-weight: 700;
+      padding: 0.2rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .badge-refusal {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      color: #b45309;
+      font-weight: 700;
+      padding: 0.2rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+    }
+    .loading-typing-state {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 1rem 0;
+      color: #64748b;
+      font-size: 0.88rem;
+    }
+    .typing-indicator {
+      display: inline-flex;
+      gap: 4px;
+    }
+    .typing-indicator span {
+      width: 8px;
+      height: 8px;
+      background: #0284c7;
+      border-radius: 50%;
+      animation: typingBounce 1.4s infinite ease-in-out both;
+    }
+    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes typingBounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+    .formatted-answer {
+      font-size: 0.95rem;
+      line-height: 1.65;
+      color: #1e293b;
+    }
+    .formatted-answer .rag-h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0.75rem 0 0.4rem 0;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 0.25rem;
+    }
+    .formatted-answer .rag-h4 {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: #1e3a8a;
+      margin: 0.6rem 0 0.3rem 0;
+    }
+    .formatted-answer .rag-list {
+      padding-left: 0;
+      margin: 0.4rem 0;
+    }
+    .formatted-answer .rag-bullet {
+      list-style-type: none;
+      margin-bottom: 0.45rem;
+      line-height: 1.55;
+    }
+    .citations-shelf {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      margin-top: 1rem;
+    }
+    .shelf-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #15803d;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    .shelf-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .citation-pill {
+      background: white;
+      border: 1px solid #86efac;
+      border-radius: 8px;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.82rem;
+      color: #166534;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .citation-pill:hover {
+      background: #dcfce7;
+      border-color: #22c55e;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(34, 197, 94, 0.25);
+    }
+    .cite-pill-score {
+      background: #bbf7d0;
+      color: #14532d;
+      font-size: 0.72rem;
+      padding: 0.1rem 0.45rem;
+      border-radius: 9999px;
+      font-weight: 700;
+    }
+    .cite-pill-action {
+      color: #15803d;
+      font-weight: 700;
+      font-size: 0.78rem;
+      margin-left: 0.25rem;
+    }
+    .evidence-accordion {
+      margin-top: 0.85rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f8fafc;
+      font-size: 0.82rem;
+    }
+    .accordion-trigger {
+      padding: 0.6rem 0.85rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: #475569;
+      user-select: none;
+      background: #f1f5f9;
+    }
+    .evidence-list {
+      padding: 0.75rem;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .evidence-card {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+    }
+    .evidence-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.35rem;
+      font-size: 0.78rem;
+      flex-wrap: wrap;
+    }
+    .ev-index {
+      font-weight: 700;
+      color: #0284c7;
+    }
+    .ev-title {
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .ev-sec {
+      color: #64748b;
+    }
+    .btn-ev-preview {
+      margin-left: auto;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      border-radius: 5px;
+      padding: 0.2rem 0.55rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-ev-preview:hover {
+      background: #dbeafe;
+    }
+    .evidence-snippet {
+      color: #334155;
+      font-style: italic;
+      background: #f8fafc;
+      padding: 0.45rem 0.65rem;
+      border-radius: 6px;
+      border-left: 3px solid #0284c7;
+      line-height: 1.45;
+    }
+    .assistant-actions-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.95rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #f1f5f9;
+    }
+    .btn-action-tool {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #475569;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-action-tool:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+    .chat-input-bar {
+      padding: 1.15rem 1.5rem;
+      border-top: 1px solid #e2e8f0;
+      background: white;
+    }
+    .input-wrapper {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .chat-text-input {
+      flex: 1;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 0.8rem 1.1rem;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .chat-text-input:focus {
+      border-color: #0284c7;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+    .btn-send-query {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 0.8rem 1.6rem;
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.2s;
+      white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+    }
+    .btn-send-query:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.35);
+    }
+    .btn-send-query:disabled {
+      background: #cbd5e1;
+      color: #94a3b8;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .input-safety-disclaimer {
+      margin-top: 0.6rem;
+      font-size: 0.75rem;
+      color: #64748b;
+      line-height: 1.4;
+    }
   `]
 })
 export class PatientDetailsComponent implements OnInit {
@@ -2272,11 +3165,22 @@ export class PatientDetailsComponent implements OnInit {
   documents = signal<DocumentDto[]>([]);
   timeline = signal<PatientTimelineDto | null>(null);
   entities = signal<ClinicalEntityDto[]>([]);
-  activeTab = signal<'timeline' | 'entities' | 'demographics' | 'encounters' | 'documents'>('timeline');
+  activeTab = signal<'timeline' | 'entities' | 'demographics' | 'encounters' | 'documents' | 'ai-copilot'>('timeline');
   loading = signal(true);
   loadingTimeline = signal(false);
   timelineFilter = signal<'all' | 'milestones' | 'pathology' | 'surgery' | 'chemo'>('all');
   selectedVerifyEntity = signal<ClinicalEntityDto | null>(null);
+
+  // Clinical RAG Assistant state (Sprint 6)
+  ragChatMessages = signal<ChatMessage[]>([]);
+  ragInputQuery = '';
+  ragLanguage = signal<'en' | 'ne'>('en');
+  ragStrictGrounded = signal<boolean>(true);
+  ragMinRelevance = signal<number>(0.20);
+  ragLoading = signal<boolean>(false);
+  suggestedQuestions = signal<SuggestedQuestionDto[]>([]);
+  loadingSuggestions = signal<boolean>(false);
+  ragCopiedToast = signal<string | null>(null);
   submittingVerifyEntity = signal(false);
   verifyReq: VerifyClinicalEntityRequest = {
     confirmedName: '',
@@ -2348,6 +3252,7 @@ export class PatientDetailsComponent implements OnInit {
     private documentService: DocumentService,
     private scannerService: ScannerService,
     private clinicalEntityService: ClinicalEntityService,
+    private ragService: RagService,
     public authService: AuthService,
     private sanitizer: DomSanitizer
   ) {}
@@ -2409,6 +3314,7 @@ export class PatientDetailsComponent implements OnInit {
 
     this.loadTimeline(patientId);
     this.loadEntities(patientId);
+    this.loadSuggestedQuestions(patientId);
   }
 
   loadTimeline(patientId?: string): void {
@@ -2708,5 +3614,201 @@ export class PatientDetailsComponent implements OnInit {
 
   getViewUrl(docId: string): string {
     return this.documentService.getViewUrl(docId);
+  }
+
+  // ========================================================
+  // SPRINT 6: Clinical AI Copilot & Grounded RAG Methods
+  // ========================================================
+  loadSuggestedQuestions(patientId: string): void {
+    this.loadingSuggestions.set(true);
+    this.ragService.getSuggestedQuestions(patientId).subscribe({
+      next: questions => {
+        this.suggestedQuestions.set(questions);
+        this.loadingSuggestions.set(false);
+      },
+      error: () => {
+        this.suggestedQuestions.set([
+          { category: 'Biomarkers', questionText: 'What is the hormone receptor (ER, PR) and HER2 status?', icon: '🧬' },
+          { category: 'Staging', questionText: 'Summarize the histological grade, Nottingham score, and TNM stage.', icon: '🩺' },
+          { category: 'Surgical', questionText: 'Were the surgical resection margins and lymph nodes free of tumor?', icon: '✂️' },
+          { category: 'Systemic', questionText: 'What systemic chemotherapy or endocrine regimens are documented?', icon: '💊' },
+          { category: 'Executive', questionText: 'Provide a comprehensive oncological executive summary of this patient\'s history.', icon: '📋' }
+        ]);
+        this.loadingSuggestions.set(false);
+      }
+    });
+  }
+
+  askRagQuestion(queryText?: string): void {
+    const q = (queryText || this.ragInputQuery).trim();
+    if (!q || this.ragLoading() || !this.patient()) return;
+
+    this.ragInputQuery = '';
+    const userMsg: ChatMessage = {
+      id: 'msg-' + Date.now(),
+      sender: 'user',
+      text: q,
+      timestamp: new Date()
+    };
+
+    const loadingMsgId = 'assistant-' + Date.now();
+    const loadingMsg: ChatMessage = {
+      id: loadingMsgId,
+      sender: 'assistant',
+      text: '',
+      timestamp: new Date(),
+      isLoading: true
+    };
+
+    this.ragChatMessages.update(msgs => [...msgs, userMsg, loadingMsg]);
+    this.ragLoading.set(true);
+
+    const req: AskAssistantRequest = {
+      query: q,
+      language: this.ragLanguage(),
+      minRelevance: this.ragMinRelevance(),
+      strictGroundedOnly: this.ragStrictGrounded()
+    };
+
+    this.ragService.askAssistant(this.patient()!.id, req).subscribe({
+      next: resp => {
+        this.ragChatMessages.update(msgs =>
+          msgs.map(m => m.id === loadingMsgId ? {
+            ...m,
+            text: resp.answerMarkdown,
+            response: resp,
+            isLoading: false
+          } : m)
+        );
+        this.ragLoading.set(false);
+      },
+      error: err => {
+        const errorMsg = err?.error?.message || 'Unable to contact local clinical AI assistant service.';
+        this.ragChatMessages.update(msgs =>
+          msgs.map(m => m.id === loadingMsgId ? {
+            ...m,
+            text: '⚠️ **Assistant Error**: ' + errorMsg,
+            isLoading: false,
+            hasError: true,
+            errorMessage: errorMsg
+          } : m)
+        );
+        this.ragLoading.set(false);
+      }
+    });
+  }
+
+  openCitationDocument(cite: ClinicalCitationDto): void {
+    if (!cite.documentId || cite.documentId === '00000000-0000-0000-0000-000000000000') {
+      alert('This citation references a structured clinical entity summary.');
+      return;
+    }
+
+    const doc = this.documents().find(d => d.id.toLowerCase() === cite.documentId.toLowerCase());
+    if (doc) {
+      this.openViewModal(doc);
+    } else {
+      const fallbackDoc: DocumentDto = {
+        id: cite.documentId,
+        patientId: this.patient()?.id || '',
+        category: (cite.documentTitle as any) || 'PathologyLabReport',
+        clinicalDate: this.patient()?.createdAt?.split('T')[0] || '2026-03-20',
+        language: 'en',
+        confidentialityLevel: 'Normal',
+        status: 'Indexed',
+        currentVersionNumber: 1,
+        createdAt: new Date().toISOString(),
+        createdBy: 'system',
+        currentVersion: {
+          id: cite.documentId,
+          documentId: cite.documentId,
+          versionNumber: 1,
+          originalFileName: `${cite.documentTitle || 'Scanned_Record'}.pdf`,
+          contentType: 'application/pdf',
+          fileSize: 1024 * 350,
+          reasonForVersion: 'Original Ingestion',
+          sha256Checksum: 'verified-on-premise-scan',
+          createdAt: new Date().toISOString(),
+          creationActor: 'system'
+        }
+      };
+      this.openViewModal(fallbackDoc);
+    }
+  }
+
+  copyClinicalNote(text: string): void {
+    if (navigator?.clipboard) {
+      navigator.clipboard.writeText(text).then(() => {
+        this.showToast('📋 Clinical note copied to clipboard!');
+      });
+    } else {
+      this.showToast('📋 Clinical note ready to copy');
+    }
+  }
+
+  showToast(msg: string): void {
+    this.ragCopiedToast.set(msg);
+    setTimeout(() => {
+      this.ragCopiedToast.set(null);
+    }, 3000);
+  }
+
+  clearRagChat(): void {
+    if (confirm('Clear clinical AI conversation history for this patient?')) {
+      this.ragChatMessages.set([]);
+    }
+  }
+
+  formatMarkdown(md: string): string {
+    if (!md) return '';
+    let formatted = md.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    formatted = formatted.replace(/^### (.*?)$/gm, '<h4 class="rag-h4">$1</h4>');
+    formatted = formatted.replace(/^## (.*?)$/gm, '<h3 class="rag-h3">$1</h3>');
+    formatted = formatted.replace(/^[•\-] (.*?)$/gm, '<li class="rag-bullet">$1</li>');
+    formatted = formatted.replace(/((?:<li class="rag-bullet">.*?<\/li>\s*)+)/g, '<ul class="rag-list">$1</ul>');
+    formatted = formatted.replace(/\n\n/g, '<br/><br/>');
+    return formatted;
+  }
+
+  printClinicalSummary(text: string): void {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>BPKMCH Clinical AI Summary - ${this.patient()?.fullName}</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 2.5rem; color: #1e293b; line-height: 1.6; }
+            h2 { color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-top: 0; }
+            .header { display: flex; justify-content: space-between; margin-bottom: 1.5rem; border-bottom: 1px solid #cbd5e1; padding-bottom: 1rem; }
+            .meta { color: #475569; font-size: 0.9rem; }
+            .content { font-size: 1rem; margin-top: 1rem; }
+            .content strong { color: #0f172a; }
+            .footer { margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 1rem; font-size: 0.8rem; color: #64748b; }
+          </style>
+        </head>
+        <body>
+          <h2>B.P. Koirala Memorial Cancer Hospital (BPKMCH)</h2>
+          <div class="header">
+            <div>
+              <strong>Patient:</strong> ${this.patient()?.fullName}<br/>
+              <strong>MRN:</strong> ${this.patient()?.mrn}<br/>
+              <strong>Age/Gender:</strong> ${this.patient()?.age} yrs / ${this.patient()?.gender}
+            </div>
+            <div style="text-align: right;">
+              <strong>Printed On:</strong> ${new Date().toLocaleString()}<br/>
+              <strong>Attending Facility:</strong> BPKMCH Bharatpur, Nepal
+            </div>
+          </div>
+          <div class="content">${this.formatMarkdown(text)}</div>
+          <div class="footer">
+            Generated via BPKMCH On-Premise Clinical AI Assistant. Grounded strictly on verified scanned paper records.
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
   }
 }
