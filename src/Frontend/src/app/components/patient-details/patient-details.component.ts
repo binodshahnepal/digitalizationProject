@@ -75,11 +75,34 @@ import {
 
       <!-- Navigation Tabs -->
       <div class="workspace-tabs">
+        <!-- Deluxe AI Copilot Tab Pill with Animated Futuristic Icon -->
         <button 
+          type="button"
           (click)="activeTab.set('ai-copilot')" 
           [class.active]="activeTab() === 'ai-copilot'" 
-          class="tab-button tab-ai-copilot">
-          ✨ Clinical AI Copilot (Cited RAG)
+          class="tab-ai-copilot-deluxe"
+          title="Launch BPKMCH Clinical AI Assistant">
+          <div class="ai-orb-icon">
+            <span class="ai-orb-halo"></span>
+            <svg class="ai-spark-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C12.5 7.5 16.5 11.5 22 12C16.5 12.5 12.5 16.5 12 22C11.5 16.5 7.5 12.5 2 12C7.5 11.5 11.5 7.5 12 2Z" fill="url(#aiSparkleGrad)"/>
+              <circle cx="18.5" cy="5.5" r="1.75" fill="url(#aiSparkleGrad2)"/>
+              <defs>
+                <linearGradient id="aiSparkleGrad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#38bdf8" />
+                  <stop offset="0.5" stop-color="#818cf8" />
+                  <stop offset="1" stop-color="#f43f5e" />
+                </linearGradient>
+                <linearGradient id="aiSparkleGrad2" x1="16.5" y1="3.5" x2="20.5" y2="7.5" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#38bdf8" />
+                  <stop offset="1" stop-color="#c084fc" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <span class="ai-tab-title">Clinical AI Copilot</span>
+          <span class="ai-tag-pill">RAG</span>
+          <span class="ai-live-radar" title="Active On-Premise"></span>
         </button>
         <button 
           (click)="activeTab.set('timeline')" 
@@ -807,105 +830,144 @@ import {
           {{ ragCopiedToast() }}
         </div>
 
-        <!-- AI Copilot Master Header Banner -->
-        <div class="ai-copilot-banner">
-          <div class="ai-banner-left">
-            <div class="ai-badge-row">
-              <span class="ai-pill-active">
-                <span class="pulse-dot"></span> BPKMCH Clinical AI Copilot · On-Premise RAG
-              </span>
-              <span class="privacy-pill">
-                🔒 100% Local Inference · Zero Cloud Leakage · Strict Grounding Protocol
-              </span>
+        <!-- Clean Modern AI Copilot Master Header -->
+        <div class="ai-copilot-header-card">
+          <div class="ai-header-main">
+            <div class="ai-avatar-animated">
+              <span class="ai-avatar-halo"></span>
+              <span class="ai-avatar-pulse-ring"></span>
+              <svg class="ai-avatar-star" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C12.5 7.5 16.5 11.5 22 12C16.5 12.5 12.5 16.5 12 22C11.5 16.5 7.5 12.5 2 12C7.5 11.5 11.5 7.5 12 2Z" fill="url(#aiHdrSparkGrad)"/>
+                <circle cx="18.5" cy="5.5" r="1.75" fill="url(#aiHdrSparkGrad2)"/>
+                <defs>
+                  <linearGradient id="aiHdrSparkGrad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#06b6d4" />
+                    <stop offset="0.5" stop-color="#6366f1" />
+                    <stop offset="1" stop-color="#ec4899" />
+                  </linearGradient>
+                  <linearGradient id="aiHdrSparkGrad2" x1="16.5" y1="3.5" x2="20.5" y2="7.5" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#38bdf8" />
+                    <stop offset="1" stop-color="#c084fc" />
+                  </linearGradient>
+                </defs>
+              </svg>
             </div>
-            <h3>Oncology Clinical Intelligence &amp; Verified Evidence Synthesis</h3>
-            <p class="ai-banner-sub">
-              Query this patient's digitized medical record in natural language. Every clinical assertion is strictly cited to original scanned documents.
-            </p>
+            <div class="ai-header-text">
+              <div class="ai-title-row">
+                <h3 class="ai-card-title">BPKMCH Clinical AI Copilot</h3>
+                <span class="ai-pill-live">
+                  <span class="ai-live-dot"></span> On-Premise Engine
+                </span>
+                <span class="privacy-pill-clean">
+                  🔒 Zero Cloud Leakage · Strict Grounding Protocol
+                </span>
+              </div>
+              <p class="ai-header-desc">
+                Interactive clinical assistant grounded strictly on <strong>{{ patient()?.fullName }}</strong>'s scanned medical records, lab findings, and pathology reports.
+              </p>
+            </div>
           </div>
 
-          <div class="ai-banner-right">
-            <!-- Language Selector -->
-            <div class="language-switch-group">
-              <span class="control-label">Synthesis Language:</span>
-              <div class="lang-pills">
-                <button 
-                  type="button"
-                  [class.active]="ragLanguage() === 'en'" 
-                  (click)="ragLanguage.set('en')" 
-                  class="btn-lang-pill">
-                  🇬🇧 English
-                </button>
-                <button 
-                  type="button"
-                  [class.active]="ragLanguage() === 'ne'" 
-                  (click)="ragLanguage.set('ne')" 
-                  class="btn-lang-pill">
-                  🇳🇵 नेपाली
-                </button>
-              </div>
-            </div>
-
-            <!-- Controls & Actions -->
-            <div class="banner-actions-row">
+          <div class="ai-header-controls">
+            <!-- Language Switcher -->
+            <div class="language-pill-switcher">
               <button 
-                type="button" 
-                (click)="clearRagChat()" 
-                class="btn-reset-chat" 
-                title="Clear current dialogue history">
-                🔄 Clear Dialogue
+                type="button"
+                [class.active]="ragLanguage() === 'en'" 
+                (click)="ragLanguage.set('en')" 
+                class="lang-pill-btn">
+                🇬🇧 English
+              </button>
+              <button 
+                type="button"
+                [class.active]="ragLanguage() === 'ne'" 
+                (click)="ragLanguage.set('ne')" 
+                class="lang-pill-btn">
+                🇳🇵 नेपाली
               </button>
             </div>
+
+            <!-- Clear Action -->
+            <button 
+              type="button" 
+              (click)="clearRagChat()" 
+              class="btn-clean-reset" 
+              title="Clear current dialogue history">
+              🔄 Reset Dialogue
+            </button>
           </div>
         </div>
 
         <!-- Smart Clinical Prompt Chips Bar -->
-        <div class="prompt-chips-shelf">
-          <div class="chips-title">
+        <div class="prompt-chips-shelf-clean">
+          <div class="chips-title-clean">
             <span>⚡ Recommended Clinical Inquiries:</span>
-            <span class="chips-tip">Click any prompt to synthesize grounded oncology answers</span>
+            <span class="chips-tip-clean">Click any chip to synthesize verified oncology answers</span>
           </div>
-          <div class="chips-list">
+          <div class="chips-list-clean">
             <button 
               *ngFor="let s of suggestedQuestions()" 
               type="button" 
-              class="prompt-chip" 
+              class="prompt-chip-clean" 
               (click)="askRagQuestion(s.questionText)"
               [disabled]="ragLoading()">
-              <span class="chip-icon">{{ s.icon }}</span>
-              <span class="chip-cat">{{ s.category }}:</span>
-              <span class="chip-text">{{ s.questionText }}</span>
+              <span class="chip-icon-clean">{{ s.icon }}</span>
+              <span class="chip-cat-clean">{{ s.category }}:</span>
+              <span class="chip-text-clean">{{ s.questionText }}</span>
             </button>
           </div>
         </div>
 
         <!-- Main Chat Dialogue Container -->
-        <div class="chat-dialogue-card">
+        <div class="chat-dialogue-card-clean">
           <!-- Chat Messages Scroll Area -->
-          <div class="chat-messages-container">
+          <div class="chat-messages-container-clean">
             <!-- Welcome Hero if Empty -->
-            <div *ngIf="ragChatMessages().length === 0" class="chat-welcome-hero">
-              <div class="hero-icon-circle">🏥</div>
-              <h4>Welcome to BPKMCH Clinical AI Assistant</h4>
-              <p>
-                Ready to review <strong>{{ patient()?.fullName }}</strong> (MRN: <code>{{ patient()?.mrn }}</code>).
-                Select one of the tailored oncology prompt chips above, or ask any clinical question below.
+            <div *ngIf="ragChatMessages().length === 0" class="chat-welcome-hero-clean">
+              <div class="hero-ai-spark-orb">
+                <span class="orb-halo-glow"></span>
+                <span class="orb-spinning-ring"></span>
+                <svg class="orb-spark-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C12.5 7.5 16.5 11.5 22 12C16.5 12.5 12.5 16.5 12 22C11.5 16.5 7.5 12.5 2 12C7.5 11.5 11.5 7.5 12 2Z" fill="url(#heroSparkGrad)"/>
+                  <circle cx="18.5" cy="5.5" r="2" fill="url(#heroSparkGrad2)"/>
+                  <defs>
+                    <linearGradient id="heroSparkGrad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                      <stop stop-color="#06b6d4" />
+                      <stop offset="0.5" stop-color="#6366f1" />
+                      <stop offset="1" stop-color="#f43f5e" />
+                    </linearGradient>
+                    <linearGradient id="heroSparkGrad2" x1="16.5" y1="3.5" x2="20.5" y2="7.5" gradientUnits="userSpaceOnUse">
+                      <stop stop-color="#38bdf8" />
+                      <stop offset="1" stop-color="#c084fc" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              <h4 class="hero-headline">How can I assist with this patient's records today?</h4>
+              <p class="hero-subtext">
+                Ask any question regarding <strong>{{ patient()?.fullName }}</strong> (MRN: <code>{{ patient()?.mrn }}</code>). Every synthesized answer is strictly cited to original scanned paper records on-premise.
               </p>
-              <div class="welcome-features-grid">
-                <div class="feature-item">
-                  <span class="feat-icon">📑</span>
-                  <strong>Mandatory Citations</strong>
-                  <span>Every claim links to original scan pages with document names and sections.</span>
+              <div class="clean-features-strip">
+                <div class="clean-feature-badge">
+                  <span class="feat-badge-icon">📑</span>
+                  <div>
+                    <strong>Mandatory Citations</strong>
+                    <div class="feat-badge-sub">Directly links to scanned document pages</div>
+                  </div>
                 </div>
-                <div class="feature-item">
-                  <span class="feat-icon">🛡️</span>
-                  <strong>Zero Hallucination</strong>
-                  <span>Strictly refuses to invent data when not documented in patient scans.</span>
+                <div class="clean-feature-badge">
+                  <span class="feat-badge-icon">🛡️</span>
+                  <div>
+                    <strong>Zero Hallucination</strong>
+                    <div class="feat-badge-sub">Strictly refuses undocumented facts</div>
+                  </div>
                 </div>
-                <div class="feature-item">
-                  <span class="feat-icon">🔒</span>
-                  <strong>Prompt Injection Defense</strong>
-                  <span>Shields clinical records from malicious prompt hijacking and system overrides.</span>
+                <div class="clean-feature-badge">
+                  <span class="feat-badge-icon">🔒</span>
+                  <div>
+                    <strong>Prompt Injection Defense</strong>
+                    <div class="feat-badge-sub">Enterprise adversarial system protection</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -913,85 +975,97 @@ import {
             <!-- Message Bubbles -->
             <div *ngFor="let msg of ragChatMessages()" class="message-row" [class.user-row]="msg.sender === 'user'" [class.assistant-row]="msg.sender === 'assistant'">
               <!-- Clinician Message -->
-              <div *ngIf="msg.sender === 'user'" class="bubble user-bubble">
-                <div class="bubble-header">
-                  <span class="avatar-icon">👨‍⚕️</span>
-                  <span class="sender-name">Attending Clinician / Oncologist</span>
-                  <span class="msg-time">{{ msg.timestamp | date:'shortTime' }}</span>
+              <div *ngIf="msg.sender === 'user'" class="bubble user-bubble-clean">
+                <div class="bubble-header-user">
+                  <span class="avatar-icon-user">👨‍⚕️</span>
+                  <span class="sender-name-user">Attending Clinician / Oncologist</span>
+                  <span class="msg-time-user">{{ msg.timestamp | date:'shortTime' }}</span>
                 </div>
-                <div class="bubble-text">{{ msg.text }}</div>
+                <div class="bubble-text-user">{{ msg.text }}</div>
               </div>
 
               <!-- Assistant Message -->
-              <div *ngIf="msg.sender === 'assistant'" class="bubble assistant-bubble">
+              <div *ngIf="msg.sender === 'assistant'" class="bubble assistant-bubble-clean">
                 <!-- Message Top Bar -->
-                <div class="assistant-meta-bar">
-                  <div class="assistant-title-group">
-                    <span class="avatar-icon-ai">🏥</span>
-                    <span class="sender-name-ai">BPKMCH Clinical AI Copilot</span>
-                    <span *ngIf="msg.response?.modelName" class="badge-model">{{ msg.response?.modelName }}</span>
-                    <span *ngIf="msg.response?.durationMs" class="badge-latency">⚡ {{ msg.response?.durationMs }}ms</span>
+                <div class="assistant-meta-bar-clean">
+                  <div class="assistant-title-group-clean">
+                    <div class="mini-ai-orb">
+                      <span class="mini-orb-glow"></span>
+                      <svg class="mini-spark-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C12.5 7.5 16.5 11.5 22 12C16.5 12.5 12.5 16.5 12 22C11.5 16.5 7.5 12.5 2 12C7.5 11.5 11.5 7.5 12 2Z" fill="url(#miniAiSparkGrad)"/>
+                        <defs>
+                          <linearGradient id="miniAiSparkGrad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#06b6d4" />
+                            <stop offset="0.5" stop-color="#6366f1" />
+                            <stop offset="1" stop-color="#ec4899" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                    </div>
+                    <span class="sender-name-ai-clean">BPKMCH Clinical AI Copilot</span>
+                    <span *ngIf="msg.response?.modelName" class="badge-model-clean">{{ msg.response?.modelName }}</span>
+                    <span *ngIf="msg.response?.durationMs" class="badge-latency-clean">⚡ {{ msg.response?.durationMs }}ms</span>
                   </div>
 
                   <!-- Confidence / Refusal Badge -->
                   <div class="assistant-badges-group" *ngIf="!msg.isLoading">
-                    <span *ngIf="msg.response?.refusalTriggered" class="badge-refusal">
+                    <span *ngIf="msg.response?.refusalTriggered" class="badge-refusal-clean">
                       ⚠️ Out-of-Record Refusal
                     </span>
-                    <span *ngIf="!msg.response?.refusalTriggered && msg.response?.groundedConfidence" class="badge-confidence">
+                    <span *ngIf="!msg.response?.refusalTriggered && msg.response?.groundedConfidence" class="badge-confidence-clean">
                       🛡️ {{ (msg.response!.groundedConfidence * 100).toFixed(0) }}% Grounded Factuality
                     </span>
                   </div>
                 </div>
 
                 <!-- Loading State -->
-                <div *ngIf="msg.isLoading" class="loading-typing-state">
-                  <div class="typing-indicator">
+                <div *ngIf="msg.isLoading" class="loading-typing-state-clean">
+                  <div class="typing-indicator-clean">
                     <span></span><span></span><span></span>
                   </div>
-                  <span class="typing-text">Retrieving semantic vector embeddings &amp; synthesizing grounded clinical response...</span>
+                  <span class="typing-text-clean">Synthesizing verified clinical findings with dense vector citations...</span>
                 </div>
 
                 <!-- Answer Content -->
-                <div *ngIf="!msg.isLoading" class="assistant-content">
-                  <div class="formatted-answer" [innerHTML]="formatMarkdown(msg.text)"></div>
+                <div *ngIf="!msg.isLoading" class="assistant-content-clean">
+                  <div class="formatted-answer-clean" [innerHTML]="formatMarkdown(msg.text)"></div>
 
                   <!-- Interactive Citation Shelf -->
-                  <div *ngIf="msg.response?.citations?.length" class="citations-shelf">
-                    <div class="shelf-header">
-                      <span class="shelf-label">📌 Grounding Citations (Click to preview original scan):</span>
+                  <div *ngIf="msg.response?.citations?.length" class="citations-shelf-clean">
+                    <div class="shelf-header-clean">
+                      <span class="shelf-label-clean">📌 Verified Grounding Citations (Click to preview original scan):</span>
                     </div>
-                    <div class="shelf-pills">
+                    <div class="shelf-pills-clean">
                       <button 
                         *ngFor="let cite of msg.response!.citations" 
                         type="button" 
                         (click)="openCitationDocument(cite)" 
-                        class="citation-pill"
-                        title="Click to preview scan in popup">
-                        <span class="cite-pill-icon">📄</span>
-                        <span class="cite-pill-label">{{ cite.citationLabel || cite.documentTitle }}</span>
-                        <span class="cite-pill-score">{{ (cite.relevanceScore * 100).toFixed(0) }}% match</span>
-                        <span class="cite-pill-action">👁️ View Scan</span>
+                        class="citation-pill-clean"
+                        title="Click to preview original scan in popup">
+                        <span class="cite-pill-icon-clean">📄</span>
+                        <span class="cite-pill-label-clean">{{ cite.citationLabel || cite.documentTitle }}</span>
+                        <span class="cite-pill-score-clean">{{ (cite.relevanceScore * 100).toFixed(0) }}% match</span>
+                        <span class="cite-pill-action-clean">👁️ View Scan</span>
                       </button>
                     </div>
                   </div>
 
                   <!-- Evidence Inspector Accordion -->
-                  <details *ngIf="msg.response?.citations?.length" class="evidence-accordion">
-                    <summary class="accordion-trigger">
-                      🔍 Inspect Raw Evidence Chunks &amp; Document Snippets ({{ msg.response!.citations.length }} references)
+                  <details *ngIf="msg.response?.citations?.length" class="evidence-accordion-clean">
+                    <summary class="accordion-trigger-clean">
+                      🔍 Inspect Raw Evidence Chunks &amp; OCR Quotes ({{ msg.response!.citations.length }} references)
                     </summary>
-                    <div class="evidence-list">
-                      <div *ngFor="let cite of msg.response!.citations; let i = index" class="evidence-card">
-                        <div class="evidence-card-header">
-                          <span class="ev-index">Chunk #{{ i + 1 }}</span>
-                          <span class="ev-title">📄 {{ cite.documentTitle }}</span>
-                          <span class="ev-sec">§ {{ cite.sectionHeader || 'Clinical Section' }}</span>
-                          <button type="button" (click)="openCitationDocument(cite)" class="btn-ev-preview">
+                    <div class="evidence-list-clean">
+                      <div *ngFor="let cite of msg.response!.citations; let i = index" class="evidence-card-clean">
+                        <div class="evidence-card-header-clean">
+                          <span class="ev-index-clean">Chunk #{{ i + 1 }}</span>
+                          <span class="ev-title-clean">📄 {{ cite.documentTitle }}</span>
+                          <span class="ev-sec-clean">§ {{ cite.sectionHeader || 'Clinical Findings' }}</span>
+                          <button type="button" (click)="openCitationDocument(cite)" class="btn-ev-preview-clean">
                             👁️ Open Scanned Document
                           </button>
                         </div>
-                        <div class="evidence-snippet">
+                        <div class="evidence-snippet-clean">
                           "{{ cite.snippet }}"
                         </div>
                       </div>
@@ -999,11 +1073,11 @@ import {
                   </details>
 
                   <!-- Bottom Action Bar -->
-                  <div class="assistant-actions-bar">
-                    <button type="button" (click)="copyClinicalNote(msg.text)" class="btn-action-tool" title="Copy response to clipboard">
+                  <div class="assistant-actions-bar-clean">
+                    <button type="button" (click)="copyClinicalNote(msg.text)" class="btn-action-tool-clean" title="Copy response to clipboard">
                       📋 Copy Clinical Note
                     </button>
-                    <button type="button" (click)="printClinicalSummary(msg.text)" class="btn-action-tool" title="Print this synthesized response">
+                    <button type="button" (click)="printClinicalSummary(msg.text)" class="btn-action-tool-clean" title="Print this synthesized response">
                       🖨️ Print Clinical Summary
                     </button>
                   </div>
@@ -1012,26 +1086,46 @@ import {
             </div>
           </div>
 
-          <!-- Input Bar -->
-          <div class="chat-input-bar">
-            <div class="input-wrapper">
+          <!-- Clean Floating Input Bar -->
+          <div class="chat-input-bar-clean">
+            <div class="input-capsule-wrapper">
+              <div class="input-icon-prefix">
+                <svg class="input-spark-mini" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C12.5 7.5 16.5 11.5 22 12C16.5 12.5 12.5 16.5 12 22C11.5 16.5 7.5 12.5 2 12C7.5 11.5 11.5 7.5 12 2Z" fill="url(#inputSparkGrad)"/>
+                  <defs>
+                    <linearGradient id="inputSparkGrad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                      <stop stop-color="#06b6d4" />
+                      <stop offset="0.5" stop-color="#6366f1" />
+                      <stop offset="1" stop-color="#ec4899" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
               <input 
                 type="text" 
                 [(ngModel)]="ragInputQuery" 
                 (keydown.enter)="askRagQuestion()" 
                 placeholder="Ask clinical questions grounded strictly on this patient's scanned records..." 
                 [disabled]="ragLoading()" 
-                class="chat-text-input" />
+                class="chat-text-input-clean" />
               <button 
                 type="button" 
                 (click)="askRagQuestion()" 
                 [disabled]="ragLoading() || !ragInputQuery.trim()" 
-                class="btn-send-query">
-                <span *ngIf="!ragLoading()">➤ Ask Copilot</span>
-                <span *ngIf="ragLoading()">⏳ Synthesizing...</span>
+                class="btn-send-iridescent">
+                <span *ngIf="!ragLoading()" class="btn-send-inner">
+                  <span>Ask Copilot</span>
+                  <svg class="send-arrow-svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+                  </svg>
+                </span>
+                <span *ngIf="ragLoading()" class="btn-send-inner">
+                  <span class="btn-spinner"></span>
+                  <span>Thinking...</span>
+                </span>
               </button>
             </div>
-            <div class="input-safety-disclaimer">
+            <div class="input-safety-footnote">
               🔒 <strong>BPKMCH Clinical AI Safety Protocol:</strong> All responses are computed 100% on-premise from verified scans. Questions outside this patient's documented records trigger automatic safety refusals.
             </div>
           </div>
@@ -2518,20 +2612,104 @@ import {
     }
 
     /* ========================================================
-       SPRINT 6: Sleek Clinical AI Copilot & Cited RAG Styles
+       SPRINT 6: Deluxe Animated AI Copilot & Clean Modern UI
        ======================================================== */
-    .tab-ai-copilot {
-      background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%) !important;
-      color: #0369a1 !important;
-      border-color: #38bdf8 !important;
-      font-weight: 700 !important;
-      box-shadow: 0 1px 3px rgba(2, 132, 199, 0.15);
+    .tab-ai-copilot-deluxe {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.5rem 1.15rem;
+      border-radius: 9999px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #2563eb;
+      background: linear-gradient(135deg, rgba(239, 246, 255, 0.95) 0%, rgba(245, 243, 255, 0.95) 100%);
+      border: 1.5px solid #bfdbfe;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.12);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
     }
-    .tab-ai-copilot.active {
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
-      color: white !important;
-      border-color: #0284c7 !important;
-      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3) !important;
+    .tab-ai-copilot-deluxe:hover {
+      transform: translateY(-2px);
+      border-color: #818cf8;
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.25);
+      color: #4338ca;
+    }
+    .tab-ai-copilot-deluxe.active {
+      background: linear-gradient(135deg, #0284c7 0%, #4f46e5 50%, #7c3aed 100%) !important;
+      color: #ffffff !important;
+      border-color: #818cf8 !important;
+      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45) !important;
+      transform: translateY(-1px);
+    }
+    .tab-ai-copilot-deluxe.active .ai-tab-title {
+      color: #ffffff !important;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    .tab-ai-copilot-deluxe.active .ai-tag-pill {
+      background: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+    }
+    .ai-orb-icon {
+      position: relative;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ai-orb-halo {
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, #06b6d4, #6366f1, #ec4899, #06b6d4);
+      opacity: 0.6;
+      filter: blur(2px);
+      animation: spinHalo 3s linear infinite;
+    }
+    @keyframes spinHalo {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .ai-spark-svg {
+      width: 18px;
+      height: 18px;
+      position: relative;
+      z-index: 1;
+      animation: pulseSparkle 2s ease-in-out infinite alternate;
+    }
+    @keyframes pulseSparkle {
+      0% { transform: scale(0.92) rotate(0deg); filter: drop-shadow(0 0 3px rgba(56, 189, 248, 0.7)); }
+      100% { transform: scale(1.12) rotate(10deg); filter: drop-shadow(0 0 8px rgba(192, 132, 252, 0.9)); }
+    }
+    .ai-tab-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .ai-tag-pill {
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 0.1rem 0.4rem;
+      border-radius: 9999px;
+      background: #eff6ff;
+      color: #2563eb;
+      letter-spacing: 0.04em;
+    }
+    .ai-live-radar {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: radarPing 2s infinite cubic-bezier(0, 0, 0.2, 1);
+    }
+    @keyframes radarPing {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
     .floating-toast {
       position: fixed;
@@ -2552,159 +2730,172 @@ import {
       from { opacity: 0; transform: translate(-50%, -15px); }
       to { opacity: 1; transform: translate(-50%, 0); }
     }
-    .ai-copilot-banner {
-      background: linear-gradient(135deg, #091e42 0%, #0f2b5c 50%, #1e3a8a 100%);
-      color: white;
-      border-radius: 14px;
-      padding: 1.5rem 1.75rem;
+    .ai-copilot-header-card {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 1.25rem 1.75rem;
       margin-bottom: 1.25rem;
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      gap: 1.5rem;
-      box-shadow: 0 6px 18px rgba(9, 30, 66, 0.15);
-      border: 1px solid rgba(56, 189, 248, 0.2);
-    }
-    .ai-banner-left h3 {
-      margin: 0.5rem 0 0.25rem 0;
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: #f8fafc;
-      letter-spacing: -0.01em;
-    }
-    .ai-banner-sub {
-      margin: 0;
-      color: #93c5fd;
-      font-size: 0.88rem;
-      line-height: 1.45;
-      max-width: 650px;
-    }
-    .ai-badge-row {
-      display: flex;
-      flex-wrap: wrap;
       align-items: center;
-      gap: 0.6rem;
+      gap: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
-    .ai-pill-active {
-      background: rgba(16, 185, 129, 0.2);
-      border: 1px solid rgba(16, 185, 129, 0.5);
-      color: #34d399;
-      font-size: 0.76rem;
+    .ai-header-main {
+      display: flex;
+      align-items: center;
+      gap: 1.15rem;
+    }
+    .ai-avatar-animated {
+      position: relative;
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #0284c7 0%, #4f46e5 50%, #9333ea 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+      flex-shrink: 0;
+    }
+    .ai-avatar-halo {
+      position: absolute;
+      inset: -4px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.4), rgba(147, 51, 234, 0.4));
+      filter: blur(4px);
+      z-index: 0;
+      animation: pulseHalo 3s ease-in-out infinite alternate;
+    }
+    @keyframes pulseHalo {
+      0% { opacity: 0.5; transform: scale(0.98); }
+      100% { opacity: 0.9; transform: scale(1.05); }
+    }
+    .ai-avatar-star {
+      width: 24px;
+      height: 24px;
+      position: relative;
+      z-index: 1;
+      animation: pulseSparkle 2.5s ease-in-out infinite alternate;
+    }
+    .ai-title-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      margin-bottom: 0.25rem;
+    }
+    .ai-card-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+    .ai-pill-live {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #047857;
+      font-size: 0.72rem;
       font-weight: 700;
-      padding: 0.25rem 0.7rem;
+      padding: 0.2rem 0.55rem;
       border-radius: 9999px;
       display: inline-flex;
       align-items: center;
-      gap: 0.45rem;
-      letter-spacing: 0.02em;
+      gap: 0.35rem;
     }
-    .pulse-dot {
-      width: 8px;
-      height: 8px;
+    .ai-live-dot {
+      width: 6px;
+      height: 6px;
       background: #10b981;
       border-radius: 50%;
-      box-shadow: 0 0 10px #10b981;
-      animation: pulseGreen 2s infinite ease-in-out;
+      box-shadow: 0 0 6px #10b981;
     }
-    @keyframes pulseGreen {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.85); }
-    }
-    .privacy-pill {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #cbd5e1;
-      font-size: 0.75rem;
-      padding: 0.25rem 0.65rem;
+    .privacy-pill-clean {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
       border-radius: 9999px;
     }
-    .ai-banner-right {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 0.85rem;
+    .ai-header-desc {
+      margin: 0;
+      font-size: 0.85rem;
+      color: #64748b;
+      line-height: 1.4;
     }
-    .language-switch-group {
+    .ai-header-controls {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
     }
-    .control-label {
-      font-size: 0.78rem;
-      color: #cbd5e1;
-    }
-    .lang-pills {
+    .language-pill-switcher {
       display: flex;
-      background: rgba(0, 0, 0, 0.25);
+      background: #f1f5f9;
       padding: 3px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      gap: 3px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      gap: 2px;
     }
-    .btn-lang-pill {
+    .lang-pill-btn {
       background: transparent;
-      color: #94a3b8;
       border: none;
       padding: 0.35rem 0.75rem;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 0.8rem;
-      font-weight: 500;
+      font-weight: 600;
+      color: #64748b;
       cursor: pointer;
       transition: all 0.2s ease;
     }
-    .btn-lang-pill.active {
-      background: #0284c7;
-      color: white;
-      font-weight: 700;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    .lang-pill-btn.active {
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
-    .banner-actions-row {
-      display: flex;
-      gap: 0.5rem;
-    }
-    .btn-reset-chat {
-      background: rgba(239, 68, 68, 0.15);
-      color: #fca5a5;
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      padding: 0.35rem 0.75rem;
-      border-radius: 6px;
-      font-size: 0.78rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-reset-chat:hover {
-      background: rgba(239, 68, 68, 0.3);
-      color: white;
-    }
-    .prompt-chips-shelf {
+    .btn-clean-reset {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 1rem 1.25rem;
+      color: #64748b;
+      padding: 0.45rem 0.85rem;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-clean-reset:hover {
+      background: #fee2e2;
+      color: #dc2626;
+      border-color: #fca5a5;
+    }
+    .prompt-chips-shelf-clean {
       margin-bottom: 1.25rem;
     }
-    .chips-title {
+    .chips-title-clean {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      margin-bottom: 0.75rem;
-      font-size: 0.82rem;
+      align-items: center;
+      margin-bottom: 0.6rem;
+      font-size: 0.8rem;
       font-weight: 700;
-      color: #0f172a;
+      color: #475569;
     }
-    .chips-tip {
-      font-size: 0.75rem;
-      color: #64748b;
+    .chips-tip-clean {
       font-weight: normal;
+      font-size: 0.74rem;
+      color: #94a3b8;
     }
-    .chips-list {
+    .chips-list-clean {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: 0.45rem;
     }
-    .prompt-chip {
-      background: white;
+    .prompt-chip-clean {
+      background: #ffffff;
       border: 1px solid #cbd5e1;
       border-radius: 9999px;
       padding: 0.45rem 0.95rem;
@@ -2714,107 +2905,105 @@ import {
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
-      transition: all 0.2s ease;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .prompt-chip:hover:not(:disabled) {
-      border-color: #0284c7;
-      background: #f0f9ff;
-      color: #0369a1;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(2, 132, 199, 0.15);
+    .prompt-chip-clean:hover:not(:disabled) {
+      border-color: #6366f1;
+      background: linear-gradient(135deg, #f0f9ff 0%, #f5f3ff 100%);
+      color: #4338ca;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
     }
-    .chip-icon {
-      font-size: 0.95rem;
-    }
-    .chip-cat {
-      font-weight: 700;
-      color: #0284c7;
-    }
-    .chip-text {
-      color: #334155;
-    }
-    .chat-dialogue-card {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    .chip-icon-clean { font-size: 0.95rem; }
+    .chip-cat-clean { font-weight: 700; color: #4f46e5; }
+    .chip-text-clean { color: #334155; }
+    .chat-dialogue-card-clean {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 18px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      min-height: 580px;
+      min-height: 560px;
     }
-    .chat-messages-container {
-      padding: 1.5rem;
+    .chat-messages-container-clean {
+      padding: 1.5rem 1.75rem;
       flex: 1;
       overflow-y: auto;
-      max-height: 600px;
+      max-height: 580px;
       display: flex;
       flex-direction: column;
       gap: 1.25rem;
       background: #f8fafc;
     }
-    .chat-welcome-hero {
+    .chat-welcome-hero-clean {
       text-align: center;
-      max-width: 680px;
+      max-width: 640px;
       margin: 1.5rem auto;
-      padding: 2rem 2.5rem;
-      background: white;
+      padding: 2.25rem;
+      background: #ffffff;
       border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
     }
-    .hero-icon-circle {
+    .hero-ai-spark-orb {
+      position: relative;
       width: 56px;
       height: 56px;
-      border-radius: 50%;
-      background: #eff6ff;
-      display: inline-flex;
+      margin: 0 auto 1rem auto;
+      display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.85rem;
-      margin-bottom: 0.75rem;
-      border: 1px solid #bfdbfe;
     }
-    .chat-welcome-hero h4 {
-      margin: 0 0 0.5rem 0;
+    .orb-halo-glow {
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, #06b6d4, #6366f1, #ec4899, #06b6d4);
+      filter: blur(6px);
+      opacity: 0.7;
+      animation: spinHalo 4s linear infinite;
+    }
+    .orb-spark-icon {
+      width: 32px;
+      height: 32px;
+      position: relative;
+      z-index: 1;
+      animation: pulseSparkle 2s ease-in-out infinite alternate;
+    }
+    .hero-headline {
       font-size: 1.25rem;
-      font-weight: 700;
+      font-weight: 800;
       color: #0f172a;
+      margin: 0 0 0.5rem 0;
+      letter-spacing: -0.01em;
     }
-    .chat-welcome-hero p {
+    .hero-subtext {
       color: #64748b;
       font-size: 0.9rem;
       line-height: 1.5;
-      margin: 0 0 1.25rem 0;
+      margin: 0 0 1.5rem 0;
     }
-    .welcome-features-grid {
+    .clean-features-strip {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
+      gap: 0.85rem;
       text-align: left;
     }
-    .feature-item {
+    .clean-feature-badge {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 0.85rem;
-      font-size: 0.78rem;
       display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
+      gap: 0.55rem;
+      align-items: flex-start;
+      font-size: 0.78rem;
     }
-    .feature-item strong {
-      color: #0f172a;
-    }
-    .feature-item span {
-      color: #64748b;
-      line-height: 1.35;
-    }
-    .feat-icon {
-      font-size: 1.15rem;
-      margin-bottom: 0.15rem;
-    }
+    .feat-badge-icon { font-size: 1.15rem; }
+    .feat-badge-sub { color: #64748b; font-size: 0.72rem; margin-top: 0.15rem; line-height: 1.35; }
     .message-row {
       display: flex;
       width: 100%;
@@ -2825,35 +3014,35 @@ import {
     .assistant-row {
       justify-content: flex-start;
     }
-    .user-bubble {
-      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-      color: white;
-      padding: 0.9rem 1.25rem;
-      border-radius: 16px 16px 2px 16px;
+    .user-bubble-clean {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #ffffff;
+      padding: 0.85rem 1.25rem;
+      border-radius: 18px 18px 4px 18px;
       max-width: 75%;
-      box-shadow: 0 3px 8px rgba(30, 58, 138, 0.2);
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
     }
-    .user-bubble .bubble-header {
+    .bubble-header-user {
       display: flex;
       align-items: center;
-      gap: 0.45rem;
-      font-size: 0.75rem;
-      color: #93c5fd;
-      margin-bottom: 0.35rem;
+      gap: 0.4rem;
+      font-size: 0.74rem;
+      color: #94a3b8;
+      margin-bottom: 0.25rem;
     }
-    .user-bubble .bubble-text {
-      font-size: 0.95rem;
+    .bubble-text-user {
+      font-size: 0.94rem;
       line-height: 1.45;
     }
-    .assistant-bubble {
-      background: white;
+    .assistant-bubble-clean {
+      background: #ffffff;
       border: 1px solid #e2e8f0;
-      padding: 1.25rem 1.5rem;
-      border-radius: 16px 16px 16px 2px;
+      border-radius: 18px 18px 18px 4px;
+      padding: 1.35rem 1.6rem;
       width: 100%;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.04);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
-    .assistant-meta-bar {
+    .assistant-meta-bar-clean {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -2861,17 +3050,39 @@ import {
       padding-bottom: 0.65rem;
       margin-bottom: 0.95rem;
     }
-    .assistant-title-group {
+    .assistant-title-group-clean {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.55rem;
     }
-    .sender-name-ai {
+    .mini-ai-orb {
+      position: relative;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mini-orb-glow {
+      position: absolute;
+      inset: -2px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #06b6d4, #ec4899);
+      opacity: 0.5;
+      filter: blur(2px);
+    }
+    .mini-spark-svg {
+      width: 16px;
+      height: 16px;
+      position: relative;
+      z-index: 1;
+    }
+    .sender-name-ai-clean {
       font-weight: 700;
       color: #0f172a;
       font-size: 0.88rem;
     }
-    .badge-model {
+    .badge-model-clean {
       background: #f1f5f9;
       color: #475569;
       padding: 0.15rem 0.5rem;
@@ -2880,11 +3091,11 @@ import {
       font-family: monospace;
       border: 1px solid #e2e8f0;
     }
-    .badge-latency {
-      color: #64748b;
-      font-size: 0.75rem;
+    .badge-latency-clean {
+      color: #94a3b8;
+      font-size: 0.74rem;
     }
-    .badge-confidence {
+    .badge-confidence-clean {
       background: #ecfdf5;
       border: 1px solid #a7f3d0;
       color: #047857;
@@ -2892,11 +3103,8 @@ import {
       padding: 0.2rem 0.65rem;
       border-radius: 9999px;
       font-size: 0.78rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.3rem;
     }
-    .badge-refusal {
+    .badge-refusal-clean {
       background: #fffbeb;
       border: 1px solid #fde68a;
       color: #b45309;
@@ -2905,80 +3113,80 @@ import {
       border-radius: 9999px;
       font-size: 0.78rem;
     }
-    .loading-typing-state {
+    .loading-typing-state-clean {
       display: flex;
       align-items: center;
       gap: 0.85rem;
-      padding: 1rem 0;
+      padding: 0.75rem 0;
       color: #64748b;
       font-size: 0.88rem;
     }
-    .typing-indicator {
+    .typing-indicator-clean {
       display: inline-flex;
       gap: 4px;
     }
-    .typing-indicator span {
+    .typing-indicator-clean span {
       width: 8px;
       height: 8px;
-      background: #0284c7;
+      background: #6366f1;
       border-radius: 50%;
       animation: typingBounce 1.4s infinite ease-in-out both;
     }
-    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+    .typing-indicator-clean span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator-clean span:nth-child(2) { animation-delay: -0.16s; }
     @keyframes typingBounce {
       0%, 80%, 100% { transform: scale(0); }
       40% { transform: scale(1); }
     }
-    .formatted-answer {
+    .formatted-answer-clean {
       font-size: 0.95rem;
       line-height: 1.65;
       color: #1e293b;
     }
-    .formatted-answer .rag-h3 {
+    .formatted-answer-clean .rag-h3 {
       font-size: 1.05rem;
-      font-weight: 700;
+      font-weight: 800;
       color: #0f172a;
       margin: 0.75rem 0 0.4rem 0;
       border-bottom: 1px solid #f1f5f9;
       padding-bottom: 0.25rem;
     }
-    .formatted-answer .rag-h4 {
+    .formatted-answer-clean .rag-h4 {
       font-size: 0.98rem;
       font-weight: 700;
       color: #1e3a8a;
       margin: 0.6rem 0 0.3rem 0;
     }
-    .formatted-answer .rag-list {
+    .formatted-answer-clean .rag-list {
       padding-left: 0;
       margin: 0.4rem 0;
     }
-    .formatted-answer .rag-bullet {
+    .formatted-answer-clean .rag-bullet {
       list-style-type: none;
       margin-bottom: 0.45rem;
       line-height: 1.55;
     }
-    .citations-shelf {
+    .citations-shelf-clean {
       background: #f0fdf4;
       border: 1px solid #bbf7d0;
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 0.85rem 1rem;
       margin-top: 1rem;
     }
-    .shelf-label {
+    .shelf-label-clean {
       font-size: 0.82rem;
       font-weight: 700;
       color: #15803d;
       margin-bottom: 0.5rem;
       display: block;
     }
-    .shelf-pills {
+    .shelf-pills-clean {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
     }
-    .citation-pill {
-      background: white;
+    .citation-pill-clean {
+      background: #ffffff;
       border: 1px solid #86efac;
       border-radius: 8px;
       padding: 0.4rem 0.8rem;
@@ -2991,13 +3199,13 @@ import {
       transition: all 0.2s ease;
       box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
-    .citation-pill:hover {
+    .citation-pill-clean:hover {
       background: #dcfce7;
       border-color: #22c55e;
       transform: translateY(-1px);
       box-shadow: 0 4px 8px rgba(34, 197, 94, 0.25);
     }
-    .cite-pill-score {
+    .cite-pill-score-clean {
       background: #bbf7d0;
       color: #14532d;
       font-size: 0.72rem;
@@ -3005,42 +3213,42 @@ import {
       border-radius: 9999px;
       font-weight: 700;
     }
-    .cite-pill-action {
+    .cite-pill-action-clean {
       color: #15803d;
       font-weight: 700;
       font-size: 0.78rem;
       margin-left: 0.25rem;
     }
-    .evidence-accordion {
+    .evidence-accordion-clean {
       margin-top: 0.85rem;
       border: 1px solid #e2e8f0;
-      border-radius: 8px;
+      border-radius: 10px;
       overflow: hidden;
       background: #f8fafc;
       font-size: 0.82rem;
     }
-    .accordion-trigger {
-      padding: 0.6rem 0.85rem;
+    .accordion-trigger-clean {
+      padding: 0.65rem 0.95rem;
       cursor: pointer;
       font-weight: 600;
       color: #475569;
       user-select: none;
       background: #f1f5f9;
     }
-    .evidence-list {
+    .evidence-list-clean {
       padding: 0.75rem;
       border-top: 1px solid #e2e8f0;
       display: flex;
       flex-direction: column;
       gap: 0.6rem;
     }
-    .evidence-card {
-      background: white;
+    .evidence-card-clean {
+      background: #ffffff;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
       padding: 0.65rem 0.85rem;
     }
-    .evidence-card-header {
+    .evidence-card-header-clean {
       display: flex;
       align-items: center;
       gap: 0.6rem;
@@ -3048,49 +3256,37 @@ import {
       font-size: 0.78rem;
       flex-wrap: wrap;
     }
-    .ev-index {
-      font-weight: 700;
-      color: #0284c7;
-    }
-    .ev-title {
-      font-weight: 600;
-      color: #0f172a;
-    }
-    .ev-sec {
-      color: #64748b;
-    }
-    .btn-ev-preview {
+    .ev-index-clean { font-weight: 700; color: #4f46e5; }
+    .ev-title-clean { font-weight: 600; color: #0f172a; }
+    .ev-sec-clean { color: #64748b; }
+    .btn-ev-preview-clean {
       margin-left: auto;
       background: #eff6ff;
       color: #1d4ed8;
       border: 1px solid #bfdbfe;
-      border-radius: 5px;
+      border-radius: 6px;
       padding: 0.2rem 0.55rem;
       font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.15s;
     }
-    .btn-ev-preview:hover {
-      background: #dbeafe;
-    }
-    .evidence-snippet {
+    .evidence-snippet-clean {
       color: #334155;
       font-style: italic;
       background: #f8fafc;
       padding: 0.45rem 0.65rem;
       border-radius: 6px;
-      border-left: 3px solid #0284c7;
+      border-left: 3px solid #6366f1;
       line-height: 1.45;
     }
-    .assistant-actions-bar {
+    .assistant-actions-bar-clean {
       display: flex;
       gap: 0.5rem;
       margin-top: 0.95rem;
       padding-top: 0.75rem;
       border-top: 1px solid #f1f5f9;
     }
-    .btn-action-tool {
+    .btn-action-tool-clean {
       background: #f8fafc;
       border: 1px solid #cbd5e1;
       color: #475569;
@@ -3101,61 +3297,93 @@ import {
       cursor: pointer;
       transition: all 0.15s;
     }
-    .btn-action-tool:hover {
+    .btn-action-tool-clean:hover {
       background: #e2e8f0;
       color: #0f172a;
     }
-    .chat-input-bar {
+    .chat-input-bar-clean {
       padding: 1.15rem 1.5rem;
       border-top: 1px solid #e2e8f0;
-      background: white;
+      background: #ffffff;
     }
-    .input-wrapper {
+    .input-capsule-wrapper {
       display: flex;
-      gap: 0.75rem;
       align-items: center;
-    }
-    .chat-text-input {
-      flex: 1;
+      background: #ffffff;
       border: 1.5px solid #cbd5e1;
-      border-radius: 10px;
-      padding: 0.8rem 1.1rem;
-      font-size: 0.95rem;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      border-radius: 9999px;
+      padding: 0.35rem 0.45rem 0.35rem 1.15rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: all 0.2s ease;
     }
-    .chat-text-input:focus {
-      border-color: #0284c7;
-      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    .input-capsule-wrapper:focus-within {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
     }
-    .btn-send-query {
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      color: white;
+    .input-icon-prefix {
+      display: flex;
+      align-items: center;
+      margin-right: 0.65rem;
+    }
+    .input-spark-mini {
+      width: 18px;
+      height: 18px;
+      animation: pulseSparkle 2s ease-in-out infinite alternate;
+    }
+    .chat-text-input-clean {
+      flex: 1;
       border: none;
-      border-radius: 10px;
-      padding: 0.8rem 1.6rem;
+      outline: none;
+      font-size: 0.94rem;
+      background: transparent;
+      color: #0f172a;
+    }
+    .btn-send-iridescent {
+      background: linear-gradient(135deg, #0284c7 0%, #4f46e5 50%, #9333ea 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 9999px;
+      padding: 0.65rem 1.35rem;
       font-weight: 700;
-      font-size: 0.92rem;
+      font-size: 0.88rem;
       cursor: pointer;
-      transition: transform 0.1s, box-shadow 0.2s;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 3px 10px rgba(79, 70, 229, 0.3);
       white-space: nowrap;
-      box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
     }
-    .btn-send-query:hover:not(:disabled) {
+    .btn-send-iridescent:hover:not(:disabled) {
       transform: translateY(-1px);
-      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.35);
+      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.45);
     }
-    .btn-send-query:disabled {
+    .btn-send-iridescent:disabled {
       background: #cbd5e1;
       color: #94a3b8;
       cursor: not-allowed;
       box-shadow: none;
     }
-    .input-safety-disclaimer {
-      margin-top: 0.6rem;
-      font-size: 0.75rem;
-      color: #64748b;
-      line-height: 1.4;
+    .btn-send-inner {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .send-arrow-svg {
+      width: 14px;
+      height: 14px;
+    }
+    .btn-spinner {
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spinHalo 0.8s linear infinite;
+      display: inline-block;
+    }
+    .input-safety-footnote {
+      margin-top: 0.55rem;
+      font-size: 0.73rem;
+      color: #94a3b8;
+      text-align: center;
     }
   `]
 })
