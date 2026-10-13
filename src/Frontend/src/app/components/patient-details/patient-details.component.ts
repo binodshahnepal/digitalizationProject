@@ -807,21 +807,23 @@ import {
                 </div>
               </td>
               <td class="table-actions">
-                <button type="button" (click)="openViewModal(doc)" class="btn-view-doc" title="Preview document scan in popup">
-                  👁️ View Scan
-                </button>
-                <button (click)="openOcrModal(doc)" class="btn-ocr-view" title="View OCR text & AI insights">
-                  🤖 AI OCR
-                </button>
-                <button (click)="openAmendModal(doc.id)" class="btn-amend" title="Create version amendment">
-                  ✏️ Amend
-                </button>
-                <button type="button" (click)="openDeleteConfirmModal(doc)" class="btn-delete" title="Permanently delete document">
-                  🗑️ Delete
-                </button>
-                <a [href]="getDownloadUrl(doc.id)" target="_blank" class="btn-download" title="Download file to computer">
-                  ⬇️ Download
-                </a>
+                <div class="action-btn-group">
+                  <button type="button" (click)="openViewModal(doc)" class="btn-view-doc" title="Preview document scan in popup">
+                    👁️ View Scan
+                  </button>
+                  <button type="button" (click)="openOcrModal(doc)" class="btn-ocr-view" title="View OCR text & AI insights">
+                    🤖 AI OCR
+                  </button>
+                  <button type="button" (click)="openAmendModal(doc.id)" class="btn-amend" title="Create version amendment">
+                    ✏️ Amend
+                  </button>
+                  <button type="button" (click)="openDeleteConfirmModal(doc)" class="btn-delete" title="Permanently delete document">
+                    🗑️ Delete
+                  </button>
+                  <a [href]="getDownloadUrl(doc.id)" target="_blank" class="btn-download" title="Download file to computer">
+                    ⬇️ Download
+                  </a>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -1861,11 +1863,26 @@ import {
     .status-pill[data-status="RequiresReview"] {
       color: #d97706;
     }
+    .docs-table th:last-child {
+      white-space: nowrap;
+    }
+    .table-actions {
+      white-space: nowrap !important;
+      vertical-align: middle;
+      width: 1%;
+    }
+    .action-btn-group {
+      display: inline-flex !important;
+      align-items: center;
+      flex-wrap: nowrap !important;
+      gap: 0.35rem;
+      white-space: nowrap !important;
+    }
     .btn-download {
       background: #f0f9ff;
       color: #0284c7;
       border: 1px solid #bae6fd;
-      padding: 0.2rem 0.5rem;
+      padding: 0.22rem 0.5rem;
       border-radius: 4px;
       font-size: 0.75rem;
       font-weight: 600;
@@ -1873,6 +1890,9 @@ import {
       display: inline-flex;
       align-items: center;
       gap: 0.25rem;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+      margin-right: 0 !important;
       transition: all 0.15s ease;
     }
     .btn-download:hover {
@@ -1884,14 +1904,16 @@ import {
       background: #f8fafc;
       border: 1px solid #cbd5e1;
       border-radius: 4px;
-      padding: 0.2rem 0.5rem;
+      padding: 0.22rem 0.5rem;
       font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 0.25rem;
-      margin-right: 0.35rem;
+      margin-right: 0 !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
       color: #334155;
       transition: all 0.15s ease;
     }
@@ -1903,7 +1925,7 @@ import {
       background: #fef2f2;
       color: #dc2626;
       border: 1px solid #fecaca;
-      padding: 0.2rem 0.5rem;
+      padding: 0.22rem 0.5rem;
       border-radius: 4px;
       font-size: 0.75rem;
       font-weight: 600;
@@ -1911,7 +1933,9 @@ import {
       display: inline-flex;
       align-items: center;
       gap: 0.25rem;
-      margin-right: 0.35rem;
+      margin-right: 0 !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
       transition: all 0.15s ease;
     }
     .btn-delete:hover {
@@ -1940,14 +1964,16 @@ import {
       color: #1d4ed8;
       border: 1px solid #bfdbfe;
       border-radius: 4px;
-      padding: 0.25rem 0.55rem;
+      padding: 0.22rem 0.55rem;
       font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 0.25rem;
-      margin-right: 0.4rem;
+      margin-right: 0 !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
       transition: all 0.15s ease;
     }
     .btn-view-doc:hover {
@@ -2549,11 +2575,16 @@ import {
       color: #0369a1;
       border: 1px solid #bae6fd;
       border-radius: 4px;
-      padding: 0.2rem 0.5rem;
+      padding: 0.22rem 0.5rem;
       font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
-      margin-right: 0.5rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-right: 0 !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
     }
     .btn-ocr-view:hover {
       background: #bae6fd;
