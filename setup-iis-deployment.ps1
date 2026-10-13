@@ -90,9 +90,14 @@ if (-not (Test-Path $aspnetCoreDll)) {
 # 5. Build and Publish Frontend & Backend
 Write-Host "`n[Step 4/7] Staging and Publishing Production Bundles..." -ForegroundColor Cyan
 
+# Stop IIS to prevent file lock on running DLLs
+Write-Host "  -> Stopping IIS to release file locks..." -ForegroundColor Yellow
+& iisreset /stop
+
 # Create deployment directories
 New-Item -ItemType Directory -Path $FrontendPublishDir -Force | Out-Null
 New-Item -ItemType Directory -Path $ApiPublishDir -Force | Out-Null
+New-Item -ItemType Directory -Path "$ApiPublishDir\logs" -Force | Out-Null
 
 # Copy Frontend
 Write-Host "  -> Staging Angular Frontend..." -ForegroundColor Yellow
@@ -105,8 +110,8 @@ Copy-Item -Path "$ProjectRoot\publish\api\*" -Destination $ApiPublishDir -Recurs
 # 6. Configure NTFS Security Permissions
 Write-Host "`n[Step 5/7] Applying NTFS Permissions for IIS..." -ForegroundColor Cyan
 $acl = Get-Acl $IisRoot
-$permission1 = New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS", "ReadAndExecute", "ContainerInherit,ObjectInherit", "None", "Allow")
-$permission2 = New-Object System.Security.AccessControl.FileSystemAccessRule("IUSR", "ReadAndExecute", "ContainerInherit,ObjectInherit", "None", "Allow")
+$permission1 = New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS", "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
+$permission2 = New-Object System.Security.AccessControl.FileSystemAccessRule("IUSR", "FullControl", "ContainerInherit,ObjectInherit", "None", "Allow")
 $acl.AddAccessRule($permission1)
 $acl.AddAccessRule($permission2)
 Set-Acl $IisRoot $acl

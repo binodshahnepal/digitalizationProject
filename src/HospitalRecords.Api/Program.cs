@@ -82,7 +82,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalAngular", policy =>
     {
-        policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
+        policy.WithOrigins("http://localhost:4200", "https://localhost:4200", "http://www.digital.com", "http://digital.com")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -110,14 +110,27 @@ using (var scope = app.Services.CreateScope())
 }
 
 // 7. HTTP Request Pipeline
-if (app.Environment.IsDevelopment())
+// Normalize virtual directory routing when hosted under IIS sub-applications (e.g. /api)
+app.Use((context, next) =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
+    var pathBase = context.Request.PathBase.Value ?? "";
+    var path = context.Request.Path.Value ?? "";
+
+    if (pathBase.Equals("/api", StringComparison.OrdinalIgnoreCase) && !path.StartsWith("/api", StringComparison.OrdinalIgnoreCase))
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "BPKMCH API v1");
-    });
-}
+        context.Request.Path = "/api" + path;
+        context.Request.PathBase = PathString.Empty;
+    }
+
+    return next();
+});
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/api/swagger/v1/swagger.json", "BPKMCH API v1");
+    c.RoutePrefix = "swagger";
+});
 
 app.UseCors("AllowLocalAngular");
 
