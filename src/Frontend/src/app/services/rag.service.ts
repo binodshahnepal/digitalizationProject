@@ -6,12 +6,13 @@ import {
   SuggestedQuestionDto, 
   AskAssistantRequest 
 } from '../models/rag.models';
+import { getApiBaseUrl } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RagService {
-  private readonly baseUrl = 'http://localhost:5000/api/v1';
+  private readonly baseUrl = getApiBaseUrl();
 
   constructor(private http: HttpClient) {}
 

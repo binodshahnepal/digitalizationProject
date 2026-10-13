@@ -2,12 +2,13 @@ import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { LoginRequest, LoginResponse, UserProfile } from '../models/auth.models';
+import { getApiBaseUrl } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly apiUrl = 'http://localhost:5000/api/v1/auth';
+  private readonly apiUrl = getApiBaseUrl() + '/auth';
   private readonly TOKEN_KEY = 'bpkmch_token';
   private readonly USER_KEY = 'bpkmch_user';
 

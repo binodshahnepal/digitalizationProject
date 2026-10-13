@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DocumentDto, DocumentUploadResult, DocumentOcrResultDto, VerifyOcrRequest, DocumentReviewQueueItemDto } from '../models/document.models';
+import { getApiBaseUrl } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DocumentService {
-  private readonly baseUrl = 'http://localhost:5000/api/v1';
+  private readonly baseUrl = getApiBaseUrl();
 
   constructor(private http: HttpClient) {}
 

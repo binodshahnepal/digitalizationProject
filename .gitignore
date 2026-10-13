@@ -61,3 +61,7 @@ StorageVault/
 Thumbs.db
 ehthumbs.db
 [Dd]esktop.ini
+
+# Deployment Publish Artifacts
+publish/
+**/publish/

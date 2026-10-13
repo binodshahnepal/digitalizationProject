@@ -6,12 +6,13 @@ import {
   VerifyClinicalEntityRequest, 
   PatientTimelineDto 
 } from '../models/clinical-entity.models';
+import { getApiBaseUrl } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ClinicalEntityService {
-  private readonly baseUrl = 'http://localhost:5000/api/v1';
+  private readonly baseUrl = getApiBaseUrl();
 
   constructor(private http: HttpClient) {}
 

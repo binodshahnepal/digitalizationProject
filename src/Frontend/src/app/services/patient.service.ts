@@ -8,12 +8,13 @@ import {
   DuplicateMatchCandidate, 
   PatientSearchResult 
 } from '../models/patient.models';
+import { getApiBaseUrl } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PatientService {
-  private readonly apiUrl = 'http://localhost:5000/api/v1/patients';
+  private readonly apiUrl = getApiBaseUrl() + '/patients';
 
   constructor(private http: HttpClient) {}
 

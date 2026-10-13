@@ -12,12 +12,13 @@ import {
   ClinicalFeedbackRequest,
   ClinicalFeedbackDto
 } from '../models/admin-operations.models';
+import { getApiBaseUrl } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AdminOperationsService {
-  private readonly baseUrl = 'http://localhost:5000/api/v1';
+  private readonly baseUrl = getApiBaseUrl();
 
   constructor(private http: HttpClient) {}
 
