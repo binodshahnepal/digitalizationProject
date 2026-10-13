@@ -813,15 +813,15 @@ import {
                 <button (click)="openOcrModal(doc)" class="btn-ocr-view" title="View OCR text & AI insights">
                   🤖 AI OCR
                 </button>
-                <a [href]="getDownloadUrl(doc.id)" target="_blank" class="btn-download" title="Download file">
-                  ⬇️ Download
-                </a>
                 <button (click)="openAmendModal(doc.id)" class="btn-amend" title="Create version amendment">
                   ✏️ Amend
                 </button>
                 <button type="button" (click)="openDeleteConfirmModal(doc)" class="btn-delete" title="Permanently delete document">
                   🗑️ Delete
                 </button>
+                <a [href]="getDownloadUrl(doc.id)" target="_blank" class="btn-download" title="Download file to computer">
+                  ⬇️ Download
+                </a>
               </td>
             </tr>
           </tbody>
@@ -1214,15 +1214,15 @@ import {
               <button type="button" (click)="resetZoom()" class="btn-zoom" title="Reset (100%)">↺ 100%</button>
               <button type="button" (click)="rotateImage()" class="btn-zoom" title="Rotate 90°">🔄 Rotate</button>
             </div>
-            <a [href]="getDownloadUrl(selectedViewDoc()!.id)" target="_blank" class="btn-popup-download" title="Download file to computer">
-              ⬇️ Download
-            </a>
             <a [href]="rawViewUrl" target="_blank" class="btn-popup-newtab" title="Open full scan in new browser tab">
               🗗 Open in New Tab
             </a>
             <button type="button" (click)="openDeleteConfirmModal(selectedViewDoc()!)" class="btn-popup-delete" title="Permanently delete this document">
               🗑️ Delete
             </button>
+            <a [href]="getDownloadUrl(selectedViewDoc()!.id)" target="_blank" class="btn-popup-download" title="Download file to computer">
+              ⬇️ Download
+            </a>
             <button type="button" (click)="closeViewModal()" class="btn-close" title="Close preview">✕</button>
           </div>
         </div>
@@ -1862,20 +1862,42 @@ import {
       color: #d97706;
     }
     .btn-download {
+      background: #f0f9ff;
       color: #0284c7;
-      text-decoration: none;
-      font-weight: 600;
+      border: 1px solid #bae6fd;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
       font-size: 0.75rem;
-      margin-right: 0.5rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      transition: all 0.15s ease;
+    }
+    .btn-download:hover {
+      background: #e0f2fe;
+      border-color: #7dd3fc;
+      color: #0369a1;
     }
     .btn-amend {
-      background: none;
+      background: #f8fafc;
       border: 1px solid #cbd5e1;
       border-radius: 4px;
       padding: 0.2rem 0.5rem;
       font-size: 0.75rem;
+      font-weight: 600;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
       margin-right: 0.35rem;
+      color: #334155;
+      transition: all 0.15s ease;
+    }
+    .btn-amend:hover {
+      background: #e2e8f0;
+      color: #0f172a;
     }
     .btn-delete {
       background: #fef2f2;
@@ -1889,6 +1911,7 @@ import {
       display: inline-flex;
       align-items: center;
       gap: 0.25rem;
+      margin-right: 0.35rem;
       transition: all 0.15s ease;
     }
     .btn-delete:hover {
