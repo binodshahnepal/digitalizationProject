@@ -11,11 +11,29 @@ import { AuthService } from './services/auth.service';
     <div class="app-layout">
       <!-- Hospital Navigation Bar -->
       <header class="app-header" *ngIf="authService.isAuthenticated()">
-        <div class="header-brand" routerLink="/patients">
-          <span class="brand-logo">🏥</span>
+        <div class="header-brand" routerLink="/patients" title="BPKMCH AI Records Portal">
+          <div class="brand-icon-emblem">
+            <svg class="brand-svg-logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="navBrandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#00f2fe"/>
+                  <stop offset="100%" stop-color="#38ef7d"/>
+                </linearGradient>
+              </defs>
+              <rect x="2" y="2" width="36" height="36" rx="9" fill="#09122c" stroke="#00e5ff" stroke-width="1.8"/>
+              <path d="M16 10 H24 V16 H30 V24 H24 V30 H16 V24 H10 V16 H16 Z" fill="url(#navBrandGrad)"/>
+              <circle cx="20" cy="20" r="3.2" fill="#ffffff"/>
+              <circle cx="20" cy="20" r="1.5" fill="#060c1e"/>
+              <circle cx="6" cy="6" r="1.2" fill="#00f2fe"/>
+              <circle cx="34" cy="6" r="1.2" fill="#00f2fe"/>
+              <circle cx="6" cy="34" r="1.2" fill="#00f2fe"/>
+              <circle cx="34" cy="34" r="1.2" fill="#00f2fe"/>
+            </svg>
+            <span class="pulse-ring"></span>
+          </div>
           <div class="brand-titles">
             <h1>B.P. Koirala Memorial Cancer Hospital</h1>
-            <span class="brand-sub">AI Records Digitization & Intelligence System (Pilot)</span>
+            <span class="brand-sub">AI Records Digitization &amp; Intelligence System (Pilot)</span>
           </div>
         </div>
 
@@ -77,8 +95,38 @@ import { AuthService } from './services/auth.service';
       gap: 0.75rem;
       cursor: pointer;
     }
-    .brand-logo {
-      font-size: 1.75rem;
+    .brand-icon-emblem {
+      position: relative;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .brand-svg-logo {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.65));
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+    .header-brand:hover .brand-svg-logo {
+      transform: scale(1.08);
+      filter: drop-shadow(0 0 14px rgba(0, 242, 254, 0.95));
+    }
+    .pulse-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 9px;
+      border: 1.5px solid rgba(0, 242, 254, 0.6);
+      animation: emblemPulse 2.5s infinite;
+      pointer-events: none;
+    }
+    @keyframes emblemPulse {
+      0% { transform: scale(0.96); opacity: 0.85; }
+      50% { transform: scale(1.15); opacity: 0; }
+      100% { transform: scale(0.96); opacity: 0; }
     }
     .brand-titles h1 {
       margin: 0;

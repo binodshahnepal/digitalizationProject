@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a1238"/>
+      <stop offset="100%" stop-color="#04081c"/>
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f2fe"/>
+      <stop offset="100%" stop-color="#38ef7d"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background Shield Tile -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#bgGrad)" stroke="#00e5ff" stroke-width="1.8"/>
+
+  <!-- Corner Tech Accent Dots -->
+  <circle cx="8" cy="8" r="1.5" fill="#00e5ff" opacity="0.8"/>
+  <circle cx="56" cy="8" r="1.5" fill="#00e5ff" opacity="0.8"/>
+  <circle cx="8" cy="56" r="1.5" fill="#00e5ff" opacity="0.8"/>
+  <circle cx="56" cy="56" r="1.5" fill="#00e5ff" opacity="0.8"/>
+
+  <!-- Circuit Connection Traces -->
+  <path d="M12 32 H22 M42 32 H52 M32 12 V22 M32 42 V52" stroke="#00d2ff" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
+  <circle cx="12" cy="32" r="2.2" fill="#00f2fe"/>
+  <circle cx="52" cy="32" r="2.2" fill="#00f2fe"/>
+  <circle cx="32" cy="12" r="2.2" fill="#00f2fe"/>
+  <circle cx="32" cy="52" r="2.2" fill="#00f2fe"/>
+
+  <!-- Central Medical Cross with AI Glow -->
+  <path d="M26 18 H38 V26 H46 V38 H38 V46 H26 V38 H18 V26 H26 Z" 
+        fill="url(#cyanGrad)" 
+        stroke="#ffffff" 
+        stroke-width="1" 
+        stroke-linejoin="round"
+        filter="url(#glow)"/>
+
+  <!-- Central AI Core Pulse / Neural Node -->
+  <circle cx="32" cy="32" r="4.5" fill="#ffffff" />
+  <circle cx="32" cy="32" r="2" fill="#070d2b" />
+</svg>
