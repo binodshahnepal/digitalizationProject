@@ -1181,132 +1181,170 @@ import {
           </div>
         </div>
       </div>
+    </div> <!-- Closes TAB: Clinical AI Copilot & Cited RAG Chatbot -->
 
-      <!-- In-Browser Document Viewer Pop-up Modal -->
-        <div *ngIf="selectedViewDoc()" class="modal-overlay" (click)="closeViewModal()">
-          <div class="modal-box modal-viewer" (click)="$event.stopPropagation()">
-            <div class="modal-header viewer-header">
-              <div class="viewer-title-group">
-                <div class="viewer-main-title">
-                  <span class="viewer-icon">📄</span>
-                  <h3>{{ selectedViewDoc()?.currentVersion?.originalFileName || 'Document Scan' }}</h3>
-                </div>
-                <div class="viewer-meta-tags">
-                  <span class="category-pill">{{ selectedViewDoc()?.category }}</span>
-                  <span class="version-badge">Version {{ selectedViewDoc()?.currentVersionNumber || 1 }}</span>
-                  <span class="date-tag">📅 {{ selectedViewDoc()?.clinicalDate }}</span>
-                  <span class="status-pill" [attr.data-status]="selectedViewDoc()?.status">
-                    {{ selectedViewDoc()?.status === 'Indexed' ? '✅ Verified' : '⚠️ ' + selectedViewDoc()?.status }}
-                  </span>
-                </div>
-              </div>
-              <div class="viewer-header-actions">
-                <a [href]="getDownloadUrl(selectedViewDoc()!.id)" target="_blank" class="btn-popup-download" title="Download file to computer">
-                  ⬇️ Download
-                </a>
-                <a [href]="rawViewUrl" target="_blank" class="btn-popup-newtab" title="Open full scan in new browser tab">
-                  🗗 Open in New Tab
-                </a>
-                <button type="button" (click)="closeViewModal()" class="btn-close" title="Close preview">✕</button>
-              </div>
+    <!-- In-Browser Document Viewer Pop-up Modal (FR-DOC-001 - FR-DOC-004) -->
+    <div *ngIf="selectedViewDoc()" class="modal-overlay" (click)="closeViewModal()">
+      <div class="modal-box modal-viewer" (click)="$event.stopPropagation()">
+        <div class="modal-header viewer-header">
+          <div class="viewer-title-group">
+            <div class="viewer-main-title">
+              <span class="viewer-icon">{{ isImageDocument() ? '🖼️' : '📄' }}</span>
+              <h3>{{ selectedViewDoc()?.currentVersion?.originalFileName || 'Document Scan' }}</h3>
             </div>
+            <div class="viewer-meta-tags">
+              <span class="category-pill">{{ selectedViewDoc()?.category }}</span>
+              <span class="version-badge">Version {{ selectedViewDoc()?.currentVersionNumber || 1 }}</span>
+              <span class="date-tag">📅 {{ selectedViewDoc()?.clinicalDate }}</span>
+              <span class="status-pill" [attr.data-status]="selectedViewDoc()?.status">
+                {{ selectedViewDoc()?.status === 'Indexed' ? '✅ Verified' : '⚠️ ' + selectedViewDoc()?.status }}
+              </span>
+            </div>
+          </div>
 
-            <div class="modal-body viewer-body">
-              <div class="viewer-frame-container">
-                <iframe 
-                  *ngIf="safeViewUrl" 
-                  [src]="safeViewUrl" 
-                  class="document-iframe" 
-                  title="Document Preview Frame">
-                </iframe>
-              </div>
+          <!-- Interactive Toolbar: Zoom Controls for Images & Quick Actions -->
+          <div class="viewer-header-actions">
+            <div *ngIf="isImageDocument()" class="viewer-zoom-controls">
+              <button type="button" (click)="zoomOut()" class="btn-zoom" title="Zoom Out (-)">🔍−</button>
+              <span class="zoom-indicator">{{ (zoomLevel() * 100).toFixed(0) }}%</span>
+              <button type="button" (click)="zoomIn()" class="btn-zoom" title="Zoom In (+)">🔍+</button>
+              <button type="button" (click)="resetZoom()" class="btn-zoom" title="Reset (100%)">↺ 100%</button>
+              <button type="button" (click)="rotateImage()" class="btn-zoom" title="Rotate 90°">🔄 Rotate</button>
             </div>
-
-            <div class="modal-footer viewer-footer">
-              <div class="viewer-footer-left">
-                <span><strong>File Size:</strong> {{ formatBytes(selectedViewDoc()?.currentVersion?.fileSize) }}</span>
-                <span class="divider">•</span>
-                <span><strong>MIME Type:</strong> {{ selectedViewDoc()?.currentVersion?.contentType || 'application/pdf' }}</span>
-                <span class="divider">•</span>
-                <span><strong>SHA-256:</strong> <code>{{ selectedViewDoc()?.currentVersion?.sha256Checksum?.substring(0, 20) }}...</code></span>
-              </div>
-              <div class="viewer-footer-right">
-                <button type="button" (click)="openOcrModal(selectedViewDoc()!); closeViewModal()" class="btn-secondary">
-                  🤖 Inspect AI OCR Text
-                </button>
-                <button type="button" (click)="closeViewModal()" class="btn-primary">
-                  Close Preview
-                </button>
-              </div>
-            </div>
+            <a [href]="getDownloadUrl(selectedViewDoc()!.id)" target="_blank" class="btn-popup-download" title="Download file to computer">
+              ⬇️ Download
+            </a>
+            <a [href]="rawViewUrl" target="_blank" class="btn-popup-newtab" title="Open full scan in new browser tab">
+              🗗 Open in New Tab
+            </a>
+            <button type="button" (click)="closeViewModal()" class="btn-close" title="Close preview">✕</button>
           </div>
         </div>
 
-        <!-- OCR & AI Insights Modal -->
-        <div *ngIf="selectedOcrDoc()" class="modal-overlay">
-          <div class="modal-box modal-lg">
-            <div class="modal-header">
-              <h4>AI OCR &amp; Clinical Insights (FR-OCR-001 - FR-OCR-003)</h4>
-              <button (click)="selectedOcrDoc.set(null)" class="btn-close">✕</button>
+        <div class="modal-body viewer-body">
+          <!-- Loading Indicator -->
+          <div *ngIf="imageLoading()" class="viewer-loader">
+            <div class="viewer-spinner"></div>
+            <span>Loading high-resolution medical scan...</span>
+          </div>
+
+          <!-- Error Fallback -->
+          <div *ngIf="imageError()" class="viewer-error">
+            <span>⚠️ Unable to render inline image preview.</span>
+            <div class="error-actions">
+              <a [href]="rawViewUrl" target="_blank" class="btn-popup-newtab">🗗 Open Scan in New Tab</a>
+              <a [href]="getDownloadUrl(selectedViewDoc()!.id)" target="_blank" class="btn-popup-download">⬇️ Download File</a>
             </div>
-            <div class="modal-body">
-              <div class="ocr-modal-summary">
-                <div>
-                  <strong>Document:</strong> {{ selectedOcrDoc()?.currentVersion?.originalFileName }}
-                </div>
-                <div>
-                  <strong>Category:</strong> {{ selectedOcrDoc()?.category }}
-                  <span *ngIf="selectedOcrDoc()?.latestOcr" class="ai-pill">
-                    AI Predicted: {{ selectedOcrDoc()?.latestOcr?.predictedCategory }} ({{ ((selectedOcrDoc()?.latestOcr?.classificationConfidence || 0) * 100).toFixed(0) }}%)
-                  </span>
-                </div>
-                <div>
-                  <strong>OCR Confidence:</strong> 
-                  <span [class.text-warning]="(selectedOcrDoc()?.latestOcr?.ocrConfidenceScore || 0) < 0.70">
-                    {{ ((selectedOcrDoc()?.latestOcr?.ocrConfidenceScore || 0) * 100).toFixed(0) }}% ({{ selectedOcrDoc()?.latestOcr?.languageDetected }})
-                  </span>
-                </div>
-              </div>
+          </div>
 
-              <div *ngIf="selectedOcrDoc()?.latestOcr?.keywordsDetected?.length" class="keywords-row">
-                <label>Matched Oncology Keywords:</label>
-                <div class="keyword-tags">
-                  <span *ngFor="let kw of selectedOcrDoc()!.latestOcr!.keywordsDetected" class="kw-tag">
-                    {{ kw }}
-                  </span>
-                </div>
-              </div>
-
-              <div class="text-tabs">
-                <button type="button" [class.active]="ocrModalTab === 'full'" (click)="ocrModalTab = 'full'">
-                  Extracted Clinical Text
-                </button>
-                <button type="button" [class.active]="ocrModalTab === 'nepali'" (click)="ocrModalTab = 'nepali'">
-                  Nepali Script (देवनागरी)
-                </button>
-              </div>
-
-              <div *ngIf="ocrModalTab === 'full'">
-                <pre class="ocr-text-display">{{ selectedOcrDoc()?.latestOcr?.extractedText || 'No OCR text extracted yet.' }}</pre>
-              </div>
-
-              <div *ngIf="ocrModalTab === 'nepali'">
-                <div class="nepali-box">
-                  {{ selectedOcrDoc()?.latestOcr?.extractedNepaliText || 'कुनै नेपाली देवनागरी पाठ भेटिएन (No specific Devanagari text isolated)' }}
-                </div>
-              </div>
+          <!-- Image Viewport (JPG, PNG, Scanned Photos) -->
+          <div *ngIf="isImageDocument()" class="image-viewer-viewport">
+            <div class="image-pan-wrapper" [style.transform]="'scale(' + zoomLevel() + ') rotate(' + rotationDegrees() + 'deg)'">
+              <img 
+                [src]="rawViewUrl" 
+                (load)="imageLoading.set(false)" 
+                (error)="imageLoading.set(false); imageError.set(true)"
+                class="scan-image-element" 
+                alt="Scanned Clinical Record" />
             </div>
-            <div class="modal-footer">
-              <button *ngIf="selectedOcrDoc()?.status === 'RequiresReview'" (click)="goToReviewQueue()" class="btn-primary">
-                🔍 Go to Supervisor Verification Workbench
-              </button>
-              <button type="button" (click)="selectedOcrDoc.set(null)" class="btn-cancel">
-                Close
-              </button>
-            </div>
+          </div>
+
+          <!-- PDF Document Frame -->
+          <div *ngIf="!isImageDocument()" class="viewer-frame-container">
+            <iframe 
+              *ngIf="safeViewUrl" 
+              [src]="safeViewUrl" 
+              class="document-iframe" 
+              title="Document Preview Frame">
+            </iframe>
+          </div>
+        </div>
+
+        <div class="modal-footer viewer-footer">
+          <div class="viewer-footer-left">
+            <span><strong>File Size:</strong> {{ formatBytes(selectedViewDoc()?.currentVersion?.fileSize) }}</span>
+            <span class="divider">•</span>
+            <span><strong>MIME Type:</strong> {{ selectedViewDoc()?.currentVersion?.contentType || 'application/pdf' }}</span>
+            <span class="divider">•</span>
+            <span><strong>SHA-256:</strong> <code>{{ selectedViewDoc()?.currentVersion?.sha256Checksum?.substring(0, 20) }}...</code></span>
+          </div>
+          <div class="viewer-footer-right">
+            <button type="button" (click)="openOcrModal(selectedViewDoc()!); closeViewModal()" class="btn-secondary">
+              🤖 Inspect AI OCR Text
+            </button>
+            <button type="button" (click)="closeViewModal()" class="btn-primary">
+              Close Preview
+            </button>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- OCR & AI Insights Modal (FR-OCR-001 - FR-OCR-003) -->
+    <div *ngIf="selectedOcrDoc()" class="modal-overlay">
+      <div class="modal-box modal-lg">
+        <div class="modal-header">
+          <h4>AI OCR &amp; Clinical Insights (FR-OCR-001 - FR-OCR-003)</h4>
+          <button (click)="selectedOcrDoc.set(null)" class="btn-close">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="ocr-modal-summary">
+            <div>
+              <strong>Document:</strong> {{ selectedOcrDoc()?.currentVersion?.originalFileName }}
+            </div>
+            <div>
+              <strong>Category:</strong> {{ selectedOcrDoc()?.category }}
+              <span *ngIf="selectedOcrDoc()?.latestOcr" class="ai-pill">
+                AI Predicted: {{ selectedOcrDoc()?.latestOcr?.predictedCategory }} ({{ ((selectedOcrDoc()?.latestOcr?.classificationConfidence || 0) * 100).toFixed(0) }}%)
+              </span>
+            </div>
+            <div>
+              <strong>OCR Confidence:</strong> 
+              <span [class.text-warning]="(selectedOcrDoc()?.latestOcr?.ocrConfidenceScore || 0) < 0.70">
+                {{ ((selectedOcrDoc()?.latestOcr?.ocrConfidenceScore || 0) * 100).toFixed(0) }}% ({{ selectedOcrDoc()?.latestOcr?.languageDetected }})
+              </span>
+            </div>
+          </div>
+
+          <div *ngIf="selectedOcrDoc()?.latestOcr?.keywordsDetected?.length" class="keywords-row">
+            <label>Matched Oncology Keywords:</label>
+            <div class="keyword-tags">
+              <span *ngFor="let kw of selectedOcrDoc()!.latestOcr!.keywordsDetected" class="kw-tag">
+                {{ kw }}
+              </span>
+            </div>
+          </div>
+
+          <div class="text-tabs">
+            <button type="button" [class.active]="ocrModalTab === 'full'" (click)="ocrModalTab = 'full'">
+              Extracted Clinical Text
+            </button>
+            <button type="button" [class.active]="ocrModalTab === 'nepali'" (click)="ocrModalTab = 'nepali'">
+              Nepali Script (देवनागरी)
+            </button>
+          </div>
+
+          <div *ngIf="ocrModalTab === 'full'">
+            <pre class="ocr-text-display">{{ selectedOcrDoc()?.latestOcr?.extractedText || 'No OCR text extracted yet.' }}</pre>
+          </div>
+
+          <div *ngIf="ocrModalTab === 'nepali'">
+            <div class="nepali-box">
+              {{ selectedOcrDoc()?.latestOcr?.extractedNepaliText || 'कुनै नेपाली देवनागरी पाठ भेटिएन (No specific Devanagari text isolated)' }}
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button *ngIf="selectedOcrDoc()?.status === 'RequiresReview'" (click)="goToReviewQueue()" class="btn-primary">
+            🔍 Go to Supervisor Verification Workbench
+          </button>
+          <button type="button" (click)="selectedOcrDoc.set(null)" class="btn-cancel">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div> <!-- Closes <div class="page-container" *ngIf="patient()"> -->
 
     <div *ngIf="loading()" class="loading-state">
       Loading patient longitudinal record...
@@ -1870,9 +1908,10 @@ import {
     .viewer-body {
       flex: 1;
       padding: 0 !important;
-      background: #334155;
+      background: #0f172a;
       overflow: hidden;
       display: flex;
+      position: relative;
     }
     .viewer-frame-container {
       width: 100%;
@@ -1884,6 +1923,97 @@ import {
       height: 100%;
       border: none;
       background: #ffffff;
+    }
+    .image-viewer-viewport {
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f172a;
+      position: relative;
+      padding: 1.5rem;
+    }
+    .image-pan-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease-out;
+      transform-origin: center center;
+    }
+    .scan-image-element {
+      max-width: 100%;
+      max-height: 75vh;
+      object-fit: contain;
+      border-radius: 4px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+      background: #ffffff;
+    }
+    .viewer-zoom-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: #e2e8f0;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+    }
+    .btn-zoom {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      padding: 0.25rem 0.55rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: #1e293b;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .btn-zoom:hover {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #0284c7;
+    }
+    .zoom-indicator {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #334155;
+      min-width: 44px;
+      text-align: center;
+    }
+    .viewer-loader, .viewer-error {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      color: #f1f5f9;
+      z-index: 10;
+      background: rgba(15, 23, 42, 0.85);
+    }
+    .viewer-spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    .viewer-error {
+      color: #fca5a5;
+      font-size: 0.95rem;
+      padding: 2rem;
+      text-align: center;
+    }
+    .error-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
     }
     .viewer-footer {
       display: flex;
@@ -3658,6 +3788,10 @@ export class PatientDetailsComponent implements OnInit {
   selectedViewDoc = signal<DocumentDto | null>(null);
   safeViewUrl: SafeResourceUrl | null = null;
   rawViewUrl: string = '';
+  zoomLevel = signal<number>(1);
+  rotationDegrees = signal<number>(0);
+  imageLoading = signal<boolean>(false);
+  imageError = signal<boolean>(false);
 
   constructor(
     private route: ActivatedRoute,
@@ -3673,8 +3807,42 @@ export class PatientDetailsComponent implements OnInit {
     private adminOperationsService: AdminOperationsService
   ) {}
 
+  isImageDocument(): boolean {
+    const doc = this.selectedViewDoc();
+    if (!doc) return false;
+    const contentType = doc.currentVersion?.contentType?.toLowerCase() || '';
+    const fileName = doc.currentVersion?.originalFileName?.toLowerCase() || '';
+    return contentType.startsWith('image/') || 
+           fileName.endsWith('.jpg') || 
+           fileName.endsWith('.jpeg') || 
+           fileName.endsWith('.png') || 
+           fileName.endsWith('.webp') || 
+           fileName.endsWith('.bmp');
+  }
+
+  zoomIn(): void {
+    this.zoomLevel.update(z => Math.min(Number((z + 0.25).toFixed(2)), 4));
+  }
+
+  zoomOut(): void {
+    this.zoomLevel.update(z => Math.max(Number((z - 0.25).toFixed(2)), 0.5));
+  }
+
+  resetZoom(): void {
+    this.zoomLevel.set(1);
+    this.rotationDegrees.set(0);
+  }
+
+  rotateImage(): void {
+    this.rotationDegrees.update(r => (r + 90) % 360);
+  }
+
   openViewModal(doc: DocumentDto): void {
     this.selectedViewDoc.set(doc);
+    this.zoomLevel.set(1);
+    this.rotationDegrees.set(0);
+    this.imageLoading.set(true);
+    this.imageError.set(false);
     const url = this.documentService.getViewUrl(doc.id, doc.currentVersionNumber);
     this.rawViewUrl = url;
     this.safeViewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
@@ -3684,6 +3852,10 @@ export class PatientDetailsComponent implements OnInit {
     this.selectedViewDoc.set(null);
     this.safeViewUrl = null;
     this.rawViewUrl = '';
+    this.imageLoading.set(false);
+    this.imageError.set(false);
+    this.zoomLevel.set(1);
+    this.rotationDegrees.set(0);
   }
 
   formatBytes(bytes?: number): string {
