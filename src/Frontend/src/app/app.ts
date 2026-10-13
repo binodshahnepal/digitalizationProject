@@ -51,7 +51,7 @@ import { AuthService } from './services/auth.service';
             🔍 Supervisor Review Queue
           </a>
           <a routerLink="/admin" routerLinkActive="active" class="nav-link nav-admin">
-            ⚙️ Ops & Bulk Batch (Sprint 8)
+            ⚙️ Operations & Bulk Batch
           </a>
         </nav>
 

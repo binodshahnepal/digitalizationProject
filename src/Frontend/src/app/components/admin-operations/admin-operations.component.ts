@@ -26,7 +26,7 @@ type AdminTab = 'telemetry' | 'bulk-batch' | 'audit-logs' | 'safety-gate' | 'fhi
         <div class="header-left">
           <div class="admin-badge-pill">⚙️ System Administration & Scale</div>
           <h2>Hospital Operations & Archival Intelligence Center</h2>
-          <p class="subtitle">B.P. Koirala Memorial Cancer Hospital · On-Premise Infrastructure · Sprint 7 & 8 Production Gate</p>
+          <p class="subtitle">B.P. Koirala Memorial Cancer Hospital · On-Premise Infrastructure · Operational Monitoring & System Governance</p>
         </div>
         <div class="header-actions">
           <button (click)="refreshAll()" class="btn-refresh" [disabled]="loading">
@@ -47,25 +47,25 @@ type AdminTab = 'telemetry' | 'bulk-batch' | 'audit-logs' | 'safety-gate' | 'fhi
           class="seg-btn" 
           [class.active]="activeTab === 'bulk-batch'" 
           (click)="activeTab = 'bulk-batch'">
-          📦 Bulk Archival Ingestion (AT-12)
+          📦 Bulk Archival Ingestion
         </button>
         <button 
           class="seg-btn" 
           [class.active]="activeTab === 'audit-logs'" 
           (click)="activeTab = 'audit-logs'">
-          🔒 Compliance Audit Exporter (FR-ADM-004)
+          🔒 Compliance Audit Exporter
         </button>
         <button 
           class="seg-btn" 
           [class.active]="activeTab === 'safety-gate'" 
           (click)="activeTab = 'safety-gate'">
-          🛡️ Clinical Safety & DR Drill (Phase 2 Gate)
+          🛡️ Clinical Safety & DR Drills
         </button>
         <button 
           class="seg-btn" 
           [class.active]="activeTab === 'fhir-bridge'" 
           (click)="activeTab = 'fhir-bridge'">
-          🌐 HL7 FHIR Bridge (INT-003/4)
+          🌐 HL7 FHIR Bridge
         </button>
       </div>
 
@@ -151,7 +151,7 @@ type AdminTab = 'telemetry' | 'bulk-batch' | 'audit-logs' | 'safety-gate' | 'fhi
         <div class="batch-uploader-card glass">
           <div class="uploader-header">
             <div>
-              <h3>📦 Automated Barcode Batch Scanner (FR-DOC-007, AT-12)</h3>
+              <h3>📦 Automated Barcode Batch Scanner</h3>
               <p>Upload multi-patient historical archival scan bundles containing barcode separator sheets (e.g. Box 14 Archives). The system automatically detects patient barcodes, extracts individual charts, links MRNs, and stages unassigned sheets for review.</p>
             </div>
           </div>
@@ -225,7 +225,7 @@ type AdminTab = 'telemetry' | 'bulk-batch' | 'audit-logs' | 'safety-gate' | 'fhi
         <div class="audit-card glass">
           <div class="audit-header">
             <div>
-              <h3>🔒 Hospital Compliance Audit Trail Exporter (FR-ADM-004)</h3>
+              <h3>🔒 Hospital Compliance Audit Trail Exporter</h3>
               <p>Generate cryptographically sealed, tamper-evident audit logs of all patient views, document amendments, and clinical AI interactions for BPKMCH compliance and privacy officers.</p>
             </div>
             <button class="btn-export-csv" (click)="exportAuditLogs()" [disabled]="exportingAudit">
@@ -259,9 +259,9 @@ type AdminTab = 'telemetry' | 'bulk-batch' | 'audit-logs' | 'safety-gate' | 'fhi
           <!-- Safety Benchmark Card -->
           <div class="gate-card glass">
             <div class="gate-header">
-              <span class="gate-badge">Section 6.5 / AT-07, AT-08, AT-09</span>
+              <span class="gate-badge">Clinical Safety & Assurance Engine</span>
               <h3>🛡️ Clinical Safety & Adversarial Benchmark</h3>
-              <p>Evaluates RAG factual citation precision ($\ge 98\%$), hallucination guardrails, prompt injection defenses, and cross-patient ACL boundaries.</p>
+              <p>Evaluates RAG factual citation precision (≥ 98%), hallucination guardrails, prompt injection defenses, and cross-patient ACL boundaries.</p>
             </div>
             <button class="btn-run-gate" (click)="runSafetyBenchmark()" [disabled]="runningBenchmark">
               <span *ngIf="!runningBenchmark">▶ Run Automated Safety Benchmark</span>
@@ -273,7 +273,7 @@ type AdminTab = 'telemetry' | 'bulk-batch' | 'audit-logs' | 'safety-gate' | 'fhi
               <div class="gate-status-banner" [class.passed]="benchmarkReport.overallGatePassed">
                 <span class="gate-icon">{{ benchmarkReport.overallGatePassed ? '✅' : '❌' }}</span>
                 <div>
-                  <h4>{{ benchmarkReport.overallGatePassed ? 'PHASE 2 CLINICAL PILOT GATE: PASSED' : 'GATE FAILED' }}</h4>
+                  <h4>{{ benchmarkReport.overallGatePassed ? 'CLINICAL SAFETY PILOT GATE: PASSED' : 'GATE FAILED' }}</h4>
                   <p>Evaluated on {{ benchmarkReport.evaluatedAt | date:'medium' }} · 100% On-Premise Testing</p>
                 </div>
               </div>
@@ -353,7 +353,7 @@ type AdminTab = 'telemetry' | 'bulk-batch' | 'audit-logs' | 'safety-gate' | 'fhi
         <div class="fhir-card glass">
           <div class="fhir-header">
             <div>
-              <h3>🌐 HL7 FHIR R4 Interoperability Endpoints (INT-003, INT-004)</h3>
+              <h3>🌐 HL7 FHIR R4 Interoperability Endpoints</h3>
               <p>Standardized RESTful interfaces for bidirectional integration with BPKMCH's existing hospital billing and laboratory information systems.</p>
             </div>
           </div>
