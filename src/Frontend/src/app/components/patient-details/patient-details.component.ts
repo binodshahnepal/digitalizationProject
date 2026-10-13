@@ -1222,14 +1222,14 @@ import {
         </div>
 
         <div class="modal-body viewer-body">
-          <!-- Loading Indicator -->
-          <div *ngIf="imageLoading()" class="viewer-loader">
+          <!-- Loading Indicator (Only for high-resolution images while streaming) -->
+          <div *ngIf="isImageDocument() && imageLoading()" class="viewer-loader">
             <div class="viewer-spinner"></div>
             <span>Loading high-resolution medical scan...</span>
           </div>
 
-          <!-- Error Fallback -->
-          <div *ngIf="imageError()" class="viewer-error">
+          <!-- Error Fallback (Only if an image asset fails to render) -->
+          <div *ngIf="isImageDocument() && imageError()" class="viewer-error">
             <span>⚠️ Unable to render inline image preview.</span>
             <div class="error-actions">
               <a [href]="rawViewUrl" target="_blank" class="btn-popup-newtab">🗗 Open Scan in New Tab</a>
@@ -1242,18 +1242,19 @@ import {
             <div class="image-pan-wrapper" [style.transform]="'scale(' + zoomLevel() + ') rotate(' + rotationDegrees() + 'deg)'">
               <img 
                 [src]="rawViewUrl" 
-                (load)="imageLoading.set(false)" 
-                (error)="imageLoading.set(false); imageError.set(true)"
+                (load)="onImageLoaded()" 
+                (error)="onImageError()"
                 class="scan-image-element" 
                 alt="Scanned Clinical Record" />
             </div>
           </div>
 
-          <!-- PDF Document Frame -->
+          <!-- PDF Document Frame (Directly rendered with native browser PDF reader) -->
           <div *ngIf="!isImageDocument()" class="viewer-frame-container">
             <iframe 
               *ngIf="safeViewUrl" 
               [src]="safeViewUrl" 
+              (load)="onIframeLoaded()"
               class="document-iframe" 
               title="Document Preview Frame">
             </iframe>
@@ -1984,7 +1985,7 @@ import {
       min-width: 44px;
       text-align: center;
     }
-    .viewer-loader, .viewer-error {
+    .viewer-loader {
       position: absolute;
       inset: 0;
       display: flex;
@@ -1994,7 +1995,8 @@ import {
       gap: 0.75rem;
       color: #f1f5f9;
       z-index: 10;
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(15, 23, 42, 0.75);
+      pointer-events: none;
     }
     .viewer-spinner {
       width: 36px;
@@ -2005,10 +2007,19 @@ import {
       animation: spin 0.8s linear infinite;
     }
     .viewer-error {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
       color: #fca5a5;
       font-size: 0.95rem;
       padding: 2rem;
       text-align: center;
+      z-index: 10;
+      background: rgba(15, 23, 42, 0.92);
     }
     .error-actions {
       display: flex;
@@ -3837,12 +3848,42 @@ export class PatientDetailsComponent implements OnInit {
     this.rotationDegrees.update(r => (r + 90) % 360);
   }
 
+  onImageLoaded(): void {
+    this.imageLoading.set(false);
+  }
+
+  onImageError(): void {
+    this.imageLoading.set(false);
+    this.imageError.set(true);
+  }
+
+  onIframeLoaded(): void {
+    this.imageLoading.set(false);
+  }
+
   openViewModal(doc: DocumentDto): void {
     this.selectedViewDoc.set(doc);
     this.zoomLevel.set(1);
     this.rotationDegrees.set(0);
-    this.imageLoading.set(true);
     this.imageError.set(false);
+
+    const contentType = doc.currentVersion?.contentType?.toLowerCase() || '';
+    const fileName = doc.currentVersion?.originalFileName?.toLowerCase() || '';
+    const isImg = contentType.startsWith('image/') || 
+                  fileName.endsWith('.jpg') || 
+                  fileName.endsWith('.jpeg') || 
+                  fileName.endsWith('.png') || 
+                  fileName.endsWith('.webp') || 
+                  fileName.endsWith('.bmp');
+
+    // Only set loading for image files, and safety timeout after 1.5s
+    this.imageLoading.set(isImg);
+    if (isImg) {
+      setTimeout(() => {
+        this.imageLoading.set(false);
+      }, 1500);
+    }
+
     const url = this.documentService.getViewUrl(doc.id, doc.currentVersionNumber);
     this.rawViewUrl = url;
     this.safeViewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
