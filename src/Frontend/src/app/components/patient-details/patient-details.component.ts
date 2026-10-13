@@ -110,13 +110,13 @@ import {
           (click)="activeTab.set('timeline')" 
           [class.active]="activeTab() === 'timeline'" 
           class="tab-button tab-highlight">
-          📈 Oncology Trajectory &amp; Timeline
+          📈 Clinical Timeline &amp; Trajectory
         </button>
         <button 
           (click)="activeTab.set('entities')" 
           [class.active]="activeTab() === 'entities'" 
           class="tab-button">
-          🧬 Extracted Oncology Entities ({{ entities().length }})
+          🧬 Extracted Clinical Entities ({{ entities().length }})
         </button>
         <button 
           (click)="activeTab.set('documents')" 
@@ -140,11 +140,11 @@ import {
 
       <!-- TAB: Oncology Journey & Longitudinal Timeline (FR-VIS-001, FR-VIS-002) -->
       <div *ngIf="activeTab() === 'timeline'" class="tab-content">
-        <!-- Cancer Profile Summary Banner -->
+        <!-- Clinical Trajectory Summary Banner -->
         <div class="cancer-summary-banner">
           <div class="cancer-header-title">
-            <span class="trajectory-tag">🏥 BPKMCH Oncology Disease Trajectory</span>
-            <h3>Longitudinal Cancer Care Journey &amp; Milestones</h3>
+            <span class="trajectory-tag">🏥 Longitudinal Clinical Trajectory</span>
+            <h3>Longitudinal Clinical Care Journey &amp; Milestones</h3>
           </div>
           
           <div class="cancer-metrics-grid">
@@ -258,7 +258,7 @@ import {
           <div class="empty-timeline-state">
             <div class="empty-icon">📅</div>
             <h4>No Timeline Events Found</h4>
-            <p>Upload pathology lab reports, operative notes, or register hospital encounters to synthesize the oncology trajectory.</p>
+            <p>Upload pathology lab reports, operative notes, or register hospital encounters to synthesize the longitudinal clinical trajectory.</p>
           </div>
         </ng-template>
       </div>
@@ -267,7 +267,7 @@ import {
       <div *ngIf="activeTab() === 'entities'" class="tab-content">
         <div class="tab-action-bar">
           <div>
-            <h3>Structured Oncology Entities (AI Extracted &amp; Clinician Verified)</h3>
+            <h3>Structured Clinical Entities (AI Extracted &amp; Clinician Verified)</h3>
             <p class="subtitle">ICD-O, TNM-8, AJCC-8, Nottingham Histologic Grade, IHC Receptors, and Chemotherapy Protocols</p>
           </div>
           <button (click)="refreshEntities()" class="btn-primary">
@@ -344,7 +344,7 @@ import {
           </div>
           <div class="modal-body">
             <p class="verification-lead">
-              Validate or modify the extracted oncology finding to confirm it in the official electronic medical record.
+              Validate or modify the extracted clinical finding to confirm it in the official electronic medical record.
             </p>
 
             <div class="form-group">
@@ -909,7 +909,7 @@ import {
         <div class="prompt-chips-shelf-clean">
           <div class="chips-title-clean">
             <span>⚡ Recommended Clinical Inquiries:</span>
-            <span class="chips-tip-clean">Click any chip to synthesize verified oncology answers</span>
+            <span class="chips-tip-clean">Click any chip to synthesize verified clinical answers</span>
           </div>
           <div class="chips-list-clean">
             <button 
@@ -1316,7 +1316,7 @@ import {
           </div>
 
           <div *ngIf="selectedOcrDoc()?.latestOcr?.keywordsDetected?.length" class="keywords-row">
-            <label>Matched Oncology Keywords:</label>
+            <label>Matched Clinical Keywords:</label>
             <div class="keyword-tags">
               <span *ngFor="let kw of selectedOcrDoc()!.latestOcr!.keywordsDetected" class="kw-tag">
                 {{ kw }}
