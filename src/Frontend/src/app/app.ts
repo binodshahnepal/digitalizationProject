@@ -20,6 +20,9 @@ import { AuthService } from './services/auth.service';
         </div>
 
         <nav class="header-nav">
+          <a routerLink="/landing" routerLinkActive="active" class="nav-link">
+            🌐 Portal Home
+          </a>
           <a routerLink="/patients" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
             📁 Patient Directory
           </a>
