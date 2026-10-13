@@ -114,7 +114,7 @@ import { AuthService } from '../../services/auth.service';
 
         <div class="landing-link-row">
           <a routerLink="/landing" class="link-landing">
-            🌐 View Futuristic Hospital Landing Page &rarr;
+            🌐 Go to Home &rarr;
           </a>
         </div>
       </div>
