@@ -18,6 +18,9 @@ public interface IApplicationDbContext
     DbSet<DocumentOcrResult> DocumentOcrResults { get; }
     DbSet<ClinicalEntity> ClinicalEntities { get; }
     DbSet<DocumentEmbedding> DocumentEmbeddings { get; }
+    DbSet<ClinicalAiFeedback> ClinicalAiFeedbacks { get; }
+    DbSet<BulkBatchJob> BulkBatchJobs { get; }
+    DbSet<BulkBatchItem> BulkBatchItems { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

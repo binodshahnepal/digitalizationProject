@@ -14,6 +14,8 @@ import { DocumentDto, DocumentCategory, ConfidentialityLevel } from '../../model
 import { ScannerDeviceDto } from '../../models/scanner.models';
 import { ClinicalEntityService } from '../../services/clinical-entity.service';
 import { RagService } from '../../services/rag.service';
+import { AdminOperationsService } from '../../services/admin-operations.service';
+import { ClinicalFeedbackRequest } from '../../models/admin-operations.models';
 import { 
   ClinicalEntityDto, 
   PatientTimelineDto, 
@@ -1080,6 +1082,9 @@ import {
                     <button type="button" (click)="printClinicalSummary(msg.text)" class="btn-action-tool-clean" title="Print this synthesized response">
                       🖨️ Print Clinical Summary
                     </button>
+                    <button type="button" (click)="openFeedbackModal(msg)" class="btn-action-tool-clean btn-flag-clean" title="Flag discrepancy or missing citation for supervisor review (FR-AI-008)">
+                      🚩 Flag Discrepancy
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1127,6 +1132,51 @@ import {
             </div>
             <div class="input-safety-footnote">
               🔒 <strong>BPKMCH Clinical AI Safety Protocol:</strong> All responses are computed 100% on-premise from verified scans. Questions outside this patient's documented records trigger automatic safety refusals.
+          </div>
+        </div>
+
+        <!-- Clinician Discrepancy Flagging Modal (Sprint 7: FR-AI-008) -->
+        <div class="feedback-modal-backdrop" *ngIf="flaggingMessage()">
+          <div class="feedback-modal-card">
+            <div class="feedback-modal-header">
+              <h3>🚩 Flag AI Response Discrepancy</h3>
+              <button type="button" class="btn-close-modal" (click)="closeFeedbackModal()">✕</button>
+            </div>
+            <p class="feedback-modal-sub">Report factual inaccuracy, hallucination, or missing citations to the Medical Records Supervisor Review Queue (FR-AI-008).</p>
+
+            <div class="feedback-form-group">
+              <label class="fb-label">Discrepancy Category:</label>
+              <select [(ngModel)]="selectedFeedbackType" class="feedback-select">
+                <option value="Hallucination">Hallucination (Information ungrounded in documents)</option>
+                <option value="MissingCitation">Missing or Incorrect Citation</option>
+                <option value="IncorrectStageOrDiagnosis">Incorrect Stage or Diagnosis</option>
+                <option value="MedicationDiscrepancy">Medication / Chemotherapy Protocol Discrepancy</option>
+                <option value="IncompleteContext">Incomplete Context / Omitted Recent Visit</option>
+                <option value="Other">Other Clinical Review Concern</option>
+              </select>
+            </div>
+
+            <div class="feedback-form-group">
+              <label class="fb-label">Clinical Severity:</label>
+              <div class="severity-pill-row">
+                <button type="button" class="sev-pill" [class.active]="selectedFeedbackSeverity === 'Low'" (click)="selectedFeedbackSeverity = 'Low'">Low</button>
+                <button type="button" class="sev-pill" [class.active]="selectedFeedbackSeverity === 'Medium'" (click)="selectedFeedbackSeverity = 'Medium'">Medium</button>
+                <button type="button" class="sev-pill" [class.active]="selectedFeedbackSeverity === 'High'" (click)="selectedFeedbackSeverity = 'High'">High</button>
+                <button type="button" class="sev-pill" [class.active]="selectedFeedbackSeverity === 'Critical'" (click)="selectedFeedbackSeverity = 'Critical'">Critical</button>
+              </div>
+            </div>
+
+            <div class="feedback-form-group">
+              <label class="fb-label">Clinician Notes & Expected Findings:</label>
+              <textarea [(ngModel)]="feedbackNotes" rows="3" class="feedback-textarea" placeholder="E.g., Patient received Docetaxel + Cyclophosphamide, not Paclitaxel. Reference Biopsy report Doc #2."></textarea>
+            </div>
+
+            <div class="feedback-modal-actions">
+              <button type="button" class="btn-cancel-modal" (click)="closeFeedbackModal()">Cancel</button>
+              <button type="button" class="btn-submit-flag" (click)="submitClinicianFeedback()" [disabled]="submittingFeedback()">
+                <span *ngIf="!submittingFeedback()">🚩 Submit to Supervisor Review</span>
+                <span *ngIf="submittingFeedback()">Submitting...</span>
+              </button>
             </div>
           </div>
         </div>
@@ -3301,6 +3351,138 @@ import {
       background: #e2e8f0;
       color: #0f172a;
     }
+    .btn-flag-clean {
+      color: #dc2626;
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+    .btn-flag-clean:hover {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+    .feedback-modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(6px);
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+    }
+    .feedback-modal-card {
+      background: #ffffff;
+      border-radius: 14px;
+      max-width: 520px;
+      width: 100%;
+      padding: 1.5rem;
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
+      border: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .feedback-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .feedback-modal-header h3 {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .btn-close-modal {
+      background: none;
+      border: none;
+      font-size: 1.25rem;
+      color: #64748b;
+      cursor: pointer;
+    }
+    .feedback-modal-sub {
+      margin: 0;
+      font-size: 0.8rem;
+      color: #64748b;
+      line-height: 1.4;
+    }
+    .feedback-form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .fb-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #334155;
+    }
+    .feedback-select {
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.85rem;
+      background: #ffffff;
+      color: #0f172a;
+    }
+    .severity-pill-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .sev-pill {
+      flex: 1;
+      padding: 0.4rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #f8fafc;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+    }
+    .sev-pill.active {
+      background: #dc2626;
+      border-color: #dc2626;
+      color: #ffffff;
+    }
+    .feedback-textarea {
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.85rem;
+      font-family: inherit;
+      resize: vertical;
+    }
+    .feedback-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+    .btn-cancel-modal {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #475569;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-submit-flag {
+      background: #dc2626;
+      border: none;
+      color: #ffffff;
+      padding: 0.5rem 1.25rem;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-submit-flag:disabled {
+      opacity: 0.6;
+    }
     .chat-input-bar-clean {
       padding: 1.15rem 1.5rem;
       border-top: 1px solid #e2e8f0;
@@ -3409,6 +3591,11 @@ export class PatientDetailsComponent implements OnInit {
   suggestedQuestions = signal<SuggestedQuestionDto[]>([]);
   loadingSuggestions = signal<boolean>(false);
   ragCopiedToast = signal<string | null>(null);
+  flaggingMessage = signal<ChatMessage | null>(null);
+  selectedFeedbackType = 'Hallucination';
+  selectedFeedbackSeverity = 'Medium';
+  feedbackNotes = '';
+  submittingFeedback = signal<boolean>(false);
   submittingVerifyEntity = signal(false);
   verifyReq: VerifyClinicalEntityRequest = {
     confirmedName: '',
@@ -3482,7 +3669,8 @@ export class PatientDetailsComponent implements OnInit {
     private clinicalEntityService: ClinicalEntityService,
     private ragService: RagService,
     public authService: AuthService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private adminOperationsService: AdminOperationsService
   ) {}
 
   openViewModal(doc: DocumentDto): void {
@@ -3972,6 +4160,43 @@ export class PatientDetailsComponent implements OnInit {
     } else {
       this.showToast('📋 Clinical note ready to copy');
     }
+  }
+
+  openFeedbackModal(msg: ChatMessage): void {
+    this.flaggingMessage.set(msg);
+    this.feedbackNotes = '';
+  }
+
+  closeFeedbackModal(): void {
+    this.flaggingMessage.set(null);
+  }
+
+  submitClinicianFeedback(): void {
+    const msg = this.flaggingMessage();
+    const p = this.patient();
+    if (!msg || !p) return;
+
+    this.submittingFeedback.set(true);
+    const req: ClinicalFeedbackRequest = {
+      patientId: p.id,
+      queryText: msg.response?.query || 'Clinical query',
+      assistantResponseText: msg.text,
+      feedbackType: this.selectedFeedbackType,
+      severity: this.selectedFeedbackSeverity,
+      clinicianNotes: this.feedbackNotes || 'Clinician flagged discrepancy.'
+    };
+
+    this.adminOperationsService.submitFeedback(p.id, req).subscribe({
+      next: () => {
+        this.submittingFeedback.set(false);
+        this.closeFeedbackModal();
+        this.showToast('🚩 Discrepancy report submitted to Supervisor Review Queue (FR-AI-008)');
+      },
+      error: () => {
+        this.submittingFeedback.set(false);
+        this.showToast('⚠️ Failed to submit feedback. Please try again.');
+      }
+    });
   }
 
   showToast(msg: string): void {

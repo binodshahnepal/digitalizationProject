@@ -37,6 +37,9 @@ public static class DependencyInjection
         services.AddScoped<ITimelineService, TimelineService>();
         services.AddScoped<ISearchService, SearchService>();
         services.AddScoped<IRagChatService, RagChatService>();
+        services.AddScoped<IClinicalSafetyBenchmarkService, ClinicalSafetyBenchmarkService>();
+        services.AddScoped<IAdminOperationsService, AdminOperationsService>();
+        services.AddScoped<IFhirBridgeService, FhirBridgeService>();
 
         return services;
     }

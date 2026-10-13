@@ -29,6 +29,9 @@ import { AuthService } from './services/auth.service';
           <a routerLink="/review-queue" routerLinkActive="active" class="nav-link nav-review">
             🔍 Supervisor Review Queue
           </a>
+          <a routerLink="/admin" routerLinkActive="active" class="nav-link nav-admin">
+            ⚙️ Ops & Bulk Batch (Sprint 8)
+          </a>
         </nav>
 
         <div class="header-user">

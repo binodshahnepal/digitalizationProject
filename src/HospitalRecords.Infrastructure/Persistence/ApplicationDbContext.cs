@@ -23,6 +23,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<DocumentOcrResult> DocumentOcrResults => Set<DocumentOcrResult>();
     public DbSet<ClinicalEntity> ClinicalEntities => Set<ClinicalEntity>();
     public DbSet<DocumentEmbedding> DocumentEmbeddings => Set<DocumentEmbedding>();
+    public DbSet<ClinicalAiFeedback> ClinicalAiFeedbacks => Set<ClinicalAiFeedback>();
+    public DbSet<BulkBatchJob> BulkBatchJobs => Set<BulkBatchJob>();
+    public DbSet<BulkBatchItem> BulkBatchItems => Set<BulkBatchItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -277,6 +280,69 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
                 .WithMany()
                 .HasForeignKey(de => de.PatientId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ClinicalAiFeedback Configuration (Sprint 7: FR-AI-008, Section 6.5)
+        modelBuilder.Entity<ClinicalAiFeedback>(entity =>
+        {
+            entity.HasKey(f => f.Id);
+            entity.HasIndex(f => f.PatientId);
+            entity.HasIndex(f => f.FeedbackType);
+            entity.HasIndex(f => f.Status);
+            entity.HasIndex(f => f.CreatedAt);
+
+            entity.Property(f => f.ClinicianUsername).HasMaxLength(100).IsRequired();
+            entity.Property(f => f.QueryText).HasMaxLength(2000).IsRequired();
+            entity.Property(f => f.AssistantResponseText).IsRequired();
+            entity.Property(f => f.ClinicianNotes).HasMaxLength(2000).IsRequired();
+            entity.Property(f => f.SupervisorResolutionNotes).HasMaxLength(2000);
+            entity.Property(f => f.ResolvedBy).HasMaxLength(100);
+
+            entity.HasOne(f => f.Patient)
+                .WithMany()
+                .HasForeignKey(f => f.PatientId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // BulkBatchJob Configuration (Sprint 8: FR-DOC-007, AT-12)
+        modelBuilder.Entity<BulkBatchJob>(entity =>
+        {
+            entity.HasKey(b => b.Id);
+            entity.HasIndex(b => b.BatchReference).IsUnique();
+            entity.HasIndex(b => b.Status);
+            entity.HasIndex(b => b.CreatedAt);
+
+            entity.Property(b => b.BatchReference).HasMaxLength(100).IsRequired();
+            entity.Property(b => b.OriginalFileName).HasMaxLength(255).IsRequired();
+            entity.Property(b => b.InitiatedBy).HasMaxLength(100).IsRequired();
+            entity.Property(b => b.ErrorSummary).HasMaxLength(2000);
+        });
+
+        // BulkBatchItem Configuration (Sprint 8: FR-DOC-007)
+        modelBuilder.Entity<BulkBatchItem>(entity =>
+        {
+            entity.HasKey(bi => bi.Id);
+            entity.HasIndex(bi => bi.BulkBatchJobId);
+            entity.HasIndex(bi => bi.DetectedBarcodeMrn);
+            entity.HasIndex(bi => bi.Status);
+
+            entity.Property(bi => bi.DetectedBarcodeMrn).HasMaxLength(50);
+            entity.Property(bi => bi.Notes).HasMaxLength(1000);
+
+            entity.HasOne(bi => bi.BulkBatchJob)
+                .WithMany(b => b.Items)
+                .HasForeignKey(bi => bi.BulkBatchJobId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(bi => bi.MatchedPatient)
+                .WithMany()
+                .HasForeignKey(bi => bi.MatchedPatientId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(bi => bi.GeneratedDocument)
+                .WithMany()
+                .HasForeignKey(bi => bi.GeneratedDocumentId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

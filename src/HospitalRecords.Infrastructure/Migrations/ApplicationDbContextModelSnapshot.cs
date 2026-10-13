@@ -129,6 +129,187 @@ namespace HospitalRecords.Infrastructure.Migrations
                     b.ToTable("AuditEvents");
                 });
 
+            modelBuilder.Entity("HospitalRecords.Domain.Entities.BulkBatchItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BulkBatchJobId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DetectedBarcodeMrn")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid?>("GeneratedDocumentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ItemIndex")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("MatchedPatientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("PageEnd")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PageStart")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BulkBatchJobId");
+
+                    b.HasIndex("DetectedBarcodeMrn");
+
+                    b.HasIndex("GeneratedDocumentId");
+
+                    b.HasIndex("MatchedPatientId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("BulkBatchItems");
+                });
+
+            modelBuilder.Entity("HospitalRecords.Domain.Entities.BulkBatchJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BatchReference")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ErrorSummary")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("InitiatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("MatchedPatientsCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TotalDocumentsExtracted")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TotalPagesScanned")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UnassignedDocumentsCount")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchReference")
+                        .IsUnique();
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("BulkBatchJobs");
+                });
+
+            modelBuilder.Entity("HospitalRecords.Domain.Entities.ClinicalAiFeedback", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AssistantResponseText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ClinicianNotes")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("ClinicianUsername")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("FeedbackType")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("QueryText")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ResolvedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("Severity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SupervisorResolutionNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("FeedbackType");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("ClinicalAiFeedbacks");
+                });
+
             modelBuilder.Entity("HospitalRecords.Domain.Entities.ClinicalEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -821,6 +1002,42 @@ namespace HospitalRecords.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("HospitalRecords.Domain.Entities.BulkBatchItem", b =>
+                {
+                    b.HasOne("HospitalRecords.Domain.Entities.BulkBatchJob", "BulkBatchJob")
+                        .WithMany("Items")
+                        .HasForeignKey("BulkBatchJobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HospitalRecords.Domain.Entities.Document", "GeneratedDocument")
+                        .WithMany()
+                        .HasForeignKey("GeneratedDocumentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HospitalRecords.Domain.Entities.Patient", "MatchedPatient")
+                        .WithMany()
+                        .HasForeignKey("MatchedPatientId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("BulkBatchJob");
+
+                    b.Navigation("GeneratedDocument");
+
+                    b.Navigation("MatchedPatient");
+                });
+
+            modelBuilder.Entity("HospitalRecords.Domain.Entities.ClinicalAiFeedback", b =>
+                {
+                    b.HasOne("HospitalRecords.Domain.Entities.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Patient");
+                });
+
             modelBuilder.Entity("HospitalRecords.Domain.Entities.ClinicalEntity", b =>
                 {
                     b.HasOne("HospitalRecords.Domain.Entities.Document", "Document")
@@ -960,6 +1177,11 @@ namespace HospitalRecords.Infrastructure.Migrations
                     b.Navigation("Role");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("HospitalRecords.Domain.Entities.BulkBatchJob", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("HospitalRecords.Domain.Entities.ClinicalEvent", b =>

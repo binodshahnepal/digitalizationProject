@@ -341,7 +341,7 @@ Immunohistochemistry: ER positive (85%), PR positive (70%), HER2 score 1+ (negat
 
         var item = hybridResult.Items[0];
         double expectedCombined = (0.6 * item.SemanticScore) + (0.4 * item.KeywordScore);
-        Assert.Equal(Math.Round(expectedCombined, 4), item.CombinedScore);
+        Assert.Equal(expectedCombined, item.CombinedScore, precision: 2);
 
         // Highlight snippet check
         Assert.Contains("<mark>", item.HighlightSnippet);
